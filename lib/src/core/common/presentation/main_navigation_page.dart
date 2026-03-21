@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_chef_ai_assistant/src/core/common/presentation/widgets/core_navigation_bar.dart';
 import 'package:smart_chef_ai_assistant/src/core/navigation/app_router.dart';
 import 'package:smart_chef_ai_assistant/src/features/voice_control/presentation/bloc/voice_control_bloc.dart';
-import 'package:smart_chef_ai_assistant/src/features/voice_control/presentation/widgets/global_voice_app_bar_action.dart';
 
 @RoutePage()
 class MainNavigationPage extends StatefulWidget {

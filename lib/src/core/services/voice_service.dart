@@ -42,12 +42,36 @@ class VoiceService {
           onResult(result.recognizedWords, result.finalResult);
         },
         listenFor: const Duration(seconds: 30),
-        pauseFor: const Duration(seconds: 5),
+        pauseFor: const Duration(seconds: 10), // Увеличили таймаут тишины
         localeId: 'ru_RU',
         listenOptions: SpeechListenOptions(cancelOnError: true),
       );
     } else {
       print('STT is Not Ready');
+    }
+  }
+
+  Future<void> startWakeWordDetection({
+    required Function() onDetected,
+  }) async {
+    final hasPermission = await requestMicrophonePermission();
+    if (!hasPermission) return;
+
+    if (await isReady) {
+      print('STT Wake Word Detection Started...');
+      await _speechToText.listen(
+        onResult: (result) async {
+          final text = result.recognizedWords.toLowerCase();
+          if (text.contains('шеф') || text.contains('chef')) {
+            print('STT WAKE WORD DETECTED!');
+            await _speechToText.stop(); // Ожидаем завершения
+            onDetected();
+          }
+        },
+        listenFor: const Duration(minutes: 1),
+        pauseFor: const Duration(seconds: 10),
+        localeId: 'ru_RU',
+      );
     }
   }
 

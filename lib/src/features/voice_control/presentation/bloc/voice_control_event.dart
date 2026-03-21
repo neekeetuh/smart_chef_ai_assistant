@@ -11,6 +11,12 @@ class StartListeningEvent extends VoiceControlEvent {}
 
 class StopListeningEvent extends VoiceControlEvent {}
 
+class StartWakeWordEvent extends VoiceControlEvent {}
+
+class ToggleWakeWordEvent extends VoiceControlEvent {}
+
+class _WakeWordDetectedEvent extends VoiceControlEvent {}
+
 class _SpeechRecognizedEvent extends VoiceControlEvent {
   final String text;
   final bool isFinal;

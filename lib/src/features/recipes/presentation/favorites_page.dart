@@ -5,6 +5,7 @@ import 'package:smart_chef_ai_assistant/src/core/constants/app_strings.dart';
 import 'package:smart_chef_ai_assistant/src/core/navigation/app_router.dart';
 import 'package:smart_chef_ai_assistant/src/features/recipes/presentation/bloc/recipe_bloc.dart';
 import 'package:smart_chef_ai_assistant/src/features/recipes/presentation/widgets/recipe_card.dart';
+import 'package:smart_chef_ai_assistant/src/features/voice_control/presentation/widgets/global_voice_app_bar_action.dart';
 
 @RoutePage()
 class FavoritesPage extends StatelessWidget {
@@ -13,7 +14,10 @@ class FavoritesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.favoritesTitle)),
+      appBar: AppBar(
+        title: const Text(AppStrings.favoritesTitle),
+        actions: const [GlobalVoiceAppBarAction()],
+      ),
       body: BlocBuilder<RecipeBloc, RecipeState>(
         builder: (context, state) {
           final favoriteRecipes = state.favoriteRecipes;

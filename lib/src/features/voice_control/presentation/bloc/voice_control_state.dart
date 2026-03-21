@@ -7,7 +7,17 @@ abstract class VoiceControlState extends Equatable {
   List<Object?> get props => [];
 }
 
-class VoiceControlIdle extends VoiceControlState {}
+class VoiceControlIdle extends VoiceControlState {
+  final bool isWakeWordMode;
+  const VoiceControlIdle({this.isWakeWordMode = false});
+
+  @override
+  List<Object?> get props => [isWakeWordMode];
+}
+
+class VoiceControlWaitingForWakeWord extends VoiceControlState {}
+
+class VoiceControlWakeWordDetected extends VoiceControlState {}
 
 class VoiceControlListening extends VoiceControlState {}
 

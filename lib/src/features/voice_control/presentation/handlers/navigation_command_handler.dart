@@ -3,32 +3,33 @@ import 'package:flutter/widgets.dart';
 import 'package:smart_chef_ai_assistant/src/features/voice_control/domain/handlers/voice_command_handler.dart';
 import 'package:smart_chef_ai_assistant/src/features/voice_control/domain/models/voice_command.dart';
 
+import 'package:smart_chef_ai_assistant/src/core/navigation/app_router.dart';
+
 class NavigationCommandHandler implements VoiceCommandHandler {
   @override
   bool canHandle(VoiceCommand command) => command.action == VoiceAction.navigation;
 
   @override
   void handle(BuildContext context, VoiceCommand command) {
-    final tabsRouter = AutoTabsRouter.of(context);
     final param = command.parameters.toLowerCase();
     
-    // We can use a map instead of if-else sequence for cleaner look
-    final routeMap = {
-      'settings': 2,
-      'настройки': 2,
-      'favorite': 1,
-      'favorites': 1,
-      'избранное': 1,
-      'home': 0,
-      'главная': 0,
-      'main': 0,
-    };
+    // Определяем на какой дочерний роут внутри MainNavigation мы хотим попасть
+    PageRouteInfo? targetSubRoute;
 
-    for (final entry in routeMap.entries) {
-      if (param.contains(entry.key)) {
-        tabsRouter.setActiveIndex(entry.value);
-        return;
-      }
+    if (param.contains('settings') || param.contains('настройки')) {
+      targetSubRoute = const SettingsRoute();
+    } else if (param.contains('favorite') || param.contains('favorites') || param.contains('избранное')) {
+      targetSubRoute = const FavoritesRoute();
+    } else if (param.contains('home') || param.contains('главная') || param.contains('main')) {
+      targetSubRoute = const HomeRoute();
+    }
+
+    if (targetSubRoute != null) {
+      // Используем navigate вместо setActiveIndex, чтобы сработало из любого места дерева
+      // (например, при переходе с экрана деталей обратно в табы)
+      context.router.navigate(
+        MainNavigationRoute(children: [targetSubRoute]),
+      );
     }
   }
 }

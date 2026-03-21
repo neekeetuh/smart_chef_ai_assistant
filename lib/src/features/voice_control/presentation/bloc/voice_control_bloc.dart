@@ -17,6 +17,8 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
   String _currentTranscription = '';
   bool _isFinalResultReceived = false;
 
+  bool _isWakeWordMode = false;
+
   VoiceControlBloc({
     required VoiceService voiceService,
     required AiService aiService,
@@ -24,18 +26,62 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
   }) : _voiceService = voiceService,
        _aiService = aiService,
        _recipeRepository = recipeRepository,
-       super(VoiceControlIdle()) {
+       super(const VoiceControlIdle()) {
     on<VoiceControlEvent>((event, emit) async {
       if (event is StartListeningEvent) {
         await _onStartListening(event, emit);
       } else if (event is StopListeningEvent) {
         await _onStopListening(event, emit);
+      } else if (event is StartWakeWordEvent) {
+        await _onStartWakeWord(event, emit);
+      } else if (event is ToggleWakeWordEvent) {
+        _onToggleWakeWord(event, emit);
+      } else if (event is _WakeWordDetectedEvent) {
+        await _onWakeWordDetected(event, emit);
       } else if (event is _SpeechRecognizedEvent) {
         _onSpeechRecognized(event, emit);
       } else if (event is _SpeechErrorEvent) {
         _onSpeechError(event, emit);
       }
     }, transformer: sequential());
+  }
+
+  void _onToggleWakeWord(
+    ToggleWakeWordEvent event,
+    Emitter<VoiceControlState> emit,
+  ) {
+    _isWakeWordMode = !_isWakeWordMode;
+    print('BLOC: ToggleWakeWordMode is now $_isWakeWordMode');
+    if (_isWakeWordMode) {
+      add(StartWakeWordEvent());
+    } else {
+      _voiceService.stopListening();
+      emit(const VoiceControlIdle(isWakeWordMode: false));
+    }
+  }
+
+  Future<void> _onStartWakeWord(
+    StartWakeWordEvent event,
+    Emitter<VoiceControlState> emit,
+  ) async {
+    if (!_isWakeWordMode) return;
+    emit(VoiceControlWaitingForWakeWord());
+    await _voiceService.startWakeWordDetection(
+      onDetected: () {
+        add(_WakeWordDetectedEvent());
+      },
+    );
+  }
+
+  Future<void> _onWakeWordDetected(
+    _WakeWordDetectedEvent event,
+    Emitter<VoiceControlState> emit,
+  ) async {
+    print('BLOC: Wake Word Detected! Emitting detected state...');
+    emit(VoiceControlWakeWordDetected());
+    await Future.delayed(const Duration(milliseconds: 500));
+    print('BLOC: Starting command listen...');
+    add(StartListeningEvent());
   }
 
   Future<void> _onStartListening(
@@ -65,6 +111,11 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     StopListeningEvent event,
     Emitter<VoiceControlState> emit,
   ) async {
+    if (state is! VoiceControlListening) {
+      print('BLOC: StopListeningEvent received but not in Listening state. Skipping.');
+      return;
+    }
+
     print('BLOC: StopListeningEvent. Requesting stop...');
     await _voiceService.stopListening();
 
@@ -77,7 +128,8 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
 
     if (_currentTranscription.isEmpty) {
       print('BLOC: Transcription is EMPTY after waiting. Returning to Idle.');
-      emit(VoiceControlIdle());
+      emit(VoiceControlIdle(isWakeWordMode: _isWakeWordMode));
+      if (_isWakeWordMode) add(StartWakeWordEvent());
       return;
     }
 
@@ -103,7 +155,8 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     }
 
     // Возвращаемся в Idle после выполнения
-    emit(VoiceControlIdle());
+    emit(VoiceControlIdle(isWakeWordMode: _isWakeWordMode));
+    if (_isWakeWordMode) add(StartWakeWordEvent());
   }
 
   void _onSpeechRecognized(
@@ -113,6 +166,11 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     print('BLOC: Recognized: "${event.text}" (Final: ${event.isFinal})');
     _currentTranscription = event.text;
     _isFinalResultReceived = event.isFinal;
+
+    if (event.isFinal && state is VoiceControlListening) {
+      print('BLOC: Final result received. Triggering automatic stop/process.');
+      add(StopListeningEvent());
+    }
   }
 
   void _onSpeechError(
@@ -120,6 +178,7 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     Emitter<VoiceControlState> emit,
   ) {
     emit(VoiceControlError(event.error));
-    emit(VoiceControlIdle());
+    emit(VoiceControlIdle(isWakeWordMode: _isWakeWordMode));
+    if (_isWakeWordMode) add(StartWakeWordEvent());
   }
 }

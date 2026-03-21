@@ -6,6 +6,8 @@ import 'package:smart_chef_ai_assistant/src/features/recipes/domain/recipe.dart'
 import 'package:smart_chef_ai_assistant/src/features/recipes/presentation/bloc/recipe_bloc.dart';
 import 'package:smart_chef_ai_assistant/src/features/recipes/presentation/widgets/recipe_step_view.dart';
 
+import 'package:smart_chef_ai_assistant/src/features/voice_control/presentation/widgets/global_voice_app_bar_action.dart';
+
 @RoutePage()
 class RecipeDetailPage extends StatelessWidget {
   final String recipeId;
@@ -34,17 +36,17 @@ class RecipeDetailPage extends StatelessWidget {
                 shadows: [Shadow(color: Colors.black, blurRadius: 10)],
               ),
             ),
-            backgroundColor: Theme.of(context).colorScheme.primary,
             flexibleSpace: FlexibleSpaceBar(
               background: Image.network(
                 recipe.imageUrl,
-                fit: .cover,
+                fit: BoxFit.cover,
                 // Добавляем затемнение для читаемости
                 color: Colors.black.withAlpha(75),
-                colorBlendMode: .darken,
+                colorBlendMode: BlendMode.darken,
               ),
             ),
             actions: [
+              const GlobalVoiceAppBarAction(),
               // Кнопка Избранное
               IconButton(
                 icon: Icon(
@@ -86,7 +88,7 @@ class RecipeDetailPage extends StatelessWidget {
           // Шаги (PageView)
           SliverToBoxAdapter(
             child: Padding(
-              padding: const .all(16.0),
+              padding: const EdgeInsets.all(16.0),
               child: Text(
                 AppStrings.steps,
                 style: Theme.of(context).textTheme.headlineMedium,

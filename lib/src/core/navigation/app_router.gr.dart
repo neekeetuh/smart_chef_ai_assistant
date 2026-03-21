@@ -111,6 +111,22 @@ class RecipeDetailRouteArgs {
 }
 
 /// generated route for
+/// [RootShellPage]
+class RootShellRoute extends PageRouteInfo<void> {
+  const RootShellRoute({List<PageRouteInfo>? children})
+    : super(RootShellRoute.name, initialChildren: children);
+
+  static const String name = 'RootShellRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const RootShellPage();
+    },
+  );
+}
+
+/// generated route for
 /// [SettingsPage]
 class SettingsRoute extends PageRouteInfo<void> {
   const SettingsRoute({List<PageRouteInfo>? children})

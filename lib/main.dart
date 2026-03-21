@@ -16,6 +16,9 @@ import 'package:smart_chef_ai_assistant/src/features/recipes/data/repositories/r
 import 'package:smart_chef_ai_assistant/src/features/recipes/presentation/bloc/recipe_bloc.dart';
 import 'package:smart_chef_ai_assistant/src/features/voice_control/presentation/bloc/voice_control_bloc.dart';
 
+import 'package:smart_chef_ai_assistant/src/features/recipes/domain/repositories/recipe_repository_interface.dart';
+import 'package:smart_chef_ai_assistant/src/features/voice_control/presentation/widgets/voice_control_wrapper.dart';
+
 class MyHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
@@ -32,9 +35,14 @@ void main() async {
 
   // Инициализация источников данных
   final mockDataSource = MockRecipeDataSource();
+  final database = AppDatabase();
+  final driftDataSource = DriftRecipeDataSource(database);
 
-  final appDb = AppDatabase();
-  final driftDataSource = DriftRecipeDataSource(appDb);
+  // Инициализация репозитория
+  final recipeRepository = RecipeRepository(
+    mockDataSource: mockDataSource,
+    driftDataSource: driftDataSource,
+  );
 
   // Инициализация сервисов для голоса
   final voiceService = VoiceService();
@@ -43,34 +51,26 @@ void main() async {
   // Обеспечиваем пред-инициализацию микрофона
   await voiceService.isReady;
 
-  // Создаем экземпляр роутера
-  final appRouter = AppRouter();
-
-  runApp(
-    MyApp(
-      mockDataSource: mockDataSource,
-      driftDataSource: driftDataSource,
-      voiceService: voiceService,
-      aiService: aiService,
-      appRouter: appRouter,
-    ),
-  );
+  runApp(MyApp(
+    voiceService: voiceService,
+    aiService: aiService,
+    recipeRepository: recipeRepository,
+    database: database,
+  ));
 }
 
 class MyApp extends StatelessWidget {
-  final MockRecipeDataSource mockDataSource;
-  final DriftRecipeDataSource driftDataSource;
   final VoiceService voiceService;
   final AiService aiService;
-  final AppRouter appRouter;
+  final RecipeRepository recipeRepository;
+  final AppDatabase database;
 
   const MyApp({
     super.key,
-    required this.mockDataSource,
-    required this.driftDataSource,
     required this.voiceService,
     required this.aiService,
-    required this.appRouter,
+    required this.recipeRepository,
+    required this.database,
   });
 
   @override
@@ -79,31 +79,23 @@ class MyApp extends StatelessWidget {
 
     return MultiProvider(
       providers: [
-        // Провайдер для темы
         ChangeNotifierProvider(
-          create: (_) => ThemeProvider(themeDataSource: themeDataSource),
-        ),
+            create: (_) => ThemeProvider(themeDataSource: themeDataSource)),
+        Provider<AppDatabase>.value(value: database),
       ],
       child: MultiRepositoryProvider(
         providers: [
-          // 2. Предоставление Репозитория
-          RepositoryProvider<RecipeRepository>(
-            create: (context) => RecipeRepository(
-              mockDataSource: mockDataSource,
-              driftDataSource: driftDataSource,
-            ),
+          RepositoryProvider<RecipeRepositoryInterface>.value(
+            value: recipeRepository,
           ),
+          RepositoryProvider<RecipeRepository>(create: (_) => recipeRepository),
         ],
         child: MultiBlocProvider(
           providers: [
             BlocProvider(
-              create: (context) =>
-                  RecipeBloc(
-                    // Получаем Репозиторий, используя context.read
-                    repository: context.read<RecipeRepository>(),
-                  )..add(
-                    const FetchRecipesEvent(),
-                  ), // Запускаем загрузку данных при создании
+              create: (context) => RecipeBloc(
+                repository: recipeRepository,
+              )..add(const FetchRecipesEvent()),
             ),
             BlocProvider(
               create: (context) => VoiceControlBloc(
@@ -115,12 +107,14 @@ class MyApp extends StatelessWidget {
           ],
           child: Consumer<ThemeProvider>(
             builder: (context, themeProvider, child) {
+              final router = AppRouter();
               return MaterialApp.router(
-                title: 'Voice Chef',
+                debugShowCheckedModeBanner: false,
+                title: 'Smart Chef AI',
                 theme: AppTheme.lightTheme,
                 darkTheme: AppTheme.darkTheme,
-                themeMode: themeProvider.themeMode, // Управляется провайдером
-                routerConfig: appRouter.config(),
+                themeMode: themeProvider.themeMode,
+                routerConfig: router.config(),
               );
             },
           ),

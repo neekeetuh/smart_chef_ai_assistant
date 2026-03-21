@@ -3,6 +3,7 @@ enum VoiceAction {
   recipeStep,
   theme,
   openRecipe,
+  help,
   unknown;
 
   static VoiceAction fromString(String action) {
@@ -17,6 +18,11 @@ enum VoiceAction {
       case 'open_recipe':
       case 'openrecipe':
         return VoiceAction.openRecipe;
+      case 'help':
+      case 'show_help':
+      case 'помощь':
+      case 'инструкция':
+        return VoiceAction.help;
       default:
         return VoiceAction.unknown;
     }

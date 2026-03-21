@@ -6,6 +6,7 @@ import 'package:smart_chef_ai_assistant/src/core/common/presentation/widgets/cor
 import 'package:smart_chef_ai_assistant/src/core/navigation/app_router.dart';
 import 'package:smart_chef_ai_assistant/src/features/voice_control/presentation/bloc/voice_control_bloc.dart';
 import 'package:smart_chef_ai_assistant/src/features/voice_control/presentation/voice_command_processor.dart';
+import 'package:smart_chef_ai_assistant/src/features/voice_control/presentation/widgets/voice_help_bottom_sheet.dart';
 
 @RoutePage()
 class MainNavigationPage extends StatefulWidget {
@@ -18,6 +19,10 @@ class MainNavigationPage extends StatefulWidget {
 class _MainNavigationPageState extends State<MainNavigationPage> {
   final VoiceCommandProcessor _commandProcessor = VoiceCommandProcessor();
 
+  void _showHelpBottomSheet(BuildContext context) {
+    VoiceHelpBottomSheet.show(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return AutoTabsRouter(
@@ -28,7 +33,10 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
         return BlocListener<VoiceControlBloc, VoiceControlState>(
           listener: (context, state) {
             if (state is VoiceCommandRecognized) {
-              _commandProcessor.process(context, state.command);
+              final handled = _commandProcessor.process(context, state.command);
+              if (!handled) {
+                _showHelpBottomSheet(context);
+              }
               // recipe_step обрабатывается внутри RecipeStepView
             } else if (state is VoiceControlProcessing) {
               ScaffoldMessenger.of(context).showSnackBar(

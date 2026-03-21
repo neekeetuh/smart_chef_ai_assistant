@@ -12,7 +12,30 @@ class ThemeCommandHandler implements VoiceCommandHandler {
   void handle(BuildContext context, VoiceCommand command) {
     final themeProvider = context.read<ThemeProvider>();
     final param = command.parameters.toLowerCase();
+    print('ThemeCommandHandler: processing param "$param"');
 
+    // 1. Проверяем явное переключение на противоположную тему
+    if (param.contains('toggle') || 
+        param.contains('смени') || 
+        param.contains('переключи') ||
+        param.contains('поменяй')) {
+      final currentMode = themeProvider.themeMode;
+      print('ThemeCommandHandler: Toggling theme. Current mode: $currentMode');
+      
+      bool isCurrentlyDark;
+      if (currentMode == ThemeMode.system) {
+        isCurrentlyDark = MediaQuery.of(context).platformBrightness == Brightness.dark;
+      } else {
+        isCurrentlyDark = currentMode == ThemeMode.dark;
+      }
+
+      final targetMode = isCurrentlyDark ? ThemeMode.light : ThemeMode.dark;
+      print('ThemeCommandHandler: Setting target mode: $targetMode');
+      themeProvider.setThemeMode(targetMode);
+      return;
+    }
+
+    // 2. Иначе ищем конкретную тему в параметрах
     final themeMap = {
       'dark': ThemeMode.dark,
       'темная': ThemeMode.dark,

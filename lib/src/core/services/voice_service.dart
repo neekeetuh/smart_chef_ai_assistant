@@ -82,7 +82,7 @@ class VoiceService {
           }
         },
         listenFor: const Duration(minutes: 1),
-        pauseFor: const Duration(seconds: 10),
+        pauseFor: const Duration(seconds: 30),
         localeId: 'ru_RU',
       );
     }

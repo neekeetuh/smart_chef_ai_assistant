@@ -51,9 +51,9 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
       } else if (event is _WakeWordDetectedEvent) {
         await _onWakeWordDetected(event, emit);
       } else if (event is _SpeechRecognizedEvent) {
-        _onSpeechRecognized(event, emit);
+        await _onSpeechRecognized(event, emit);
       } else if (event is _SpeechErrorEvent) {
-        _onSpeechError(event, emit);
+        await _onSpeechError(event, emit);
       }
     }, transformer: sequential());
   }
@@ -168,13 +168,16 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
 
     // Возвращаемся в Idle после выполнения
     emit(VoiceControlIdle(isWakeWordMode: _isWakeWordMode));
-    if (_isWakeWordMode) add(StartWakeWordEvent());
+    if (_isWakeWordMode) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      add(StartWakeWordEvent());
+    }
   }
 
-  void _onSpeechRecognized(
+  Future<void> _onSpeechRecognized(
     _SpeechRecognizedEvent event,
     Emitter<VoiceControlState> emit,
-  ) {
+  ) async {
     print('BLOC: Recognized: "${event.text}" (Final: ${event.isFinal})');
     _currentTranscription = event.text;
     _isFinalResultReceived = event.isFinal;
@@ -185,10 +188,10 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     }
   }
 
-  void _onSpeechError(
+  Future<void> _onSpeechError(
     _SpeechErrorEvent event,
     Emitter<VoiceControlState> emit,
-  ) {
+  ) async {
     print('BLOC: Handling Speech Error: ${event.error}');
     
     // Игнорируем обычные таймауты и отсутствие распознавания для всплывашек
@@ -202,6 +205,7 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     emit(VoiceControlIdle(isWakeWordMode: _isWakeWordMode));
     if (_isWakeWordMode) {
       print('BLOC: Restarting Wake Word after error...');
+      await Future.delayed(const Duration(milliseconds: 500));
       add(StartWakeWordEvent());
     }
   }

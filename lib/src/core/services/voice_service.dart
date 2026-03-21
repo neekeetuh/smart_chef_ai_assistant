@@ -5,12 +5,25 @@ class VoiceService {
   final SpeechToText _speechToText = SpeechToText();
   bool _isInitialized = false;
 
-  Future<bool> get isReady async {
+  Future<bool> init({
+    required void Function(dynamic) onError,
+    required void Function(String) onStatus,
+  }) async {
     if (_isInitialized) return true;
     _isInitialized = await _speechToText.initialize(
-      onError: (val) => print('STT Error: $val'),
-      onStatus: (val) => print('STT Status: $val'),
+      onError: (val) {
+        print('STT Error Callback: $val');
+        onError(val);
+      },
+      onStatus: (val) {
+        print('STT Status Callback: $val');
+        onStatus(val);
+      },
     );
+    return _isInitialized;
+  }
+
+  Future<bool> get isReady async {
     return _isInitialized;
   }
 

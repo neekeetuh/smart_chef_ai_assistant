@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_chef_ai_assistant/src/features/recipes/domain/recipe.dart';
+import 'package:smart_chef_ai_assistant/src/features/voice_control/presentation/bloc/voice_control_bloc.dart';
+import 'package:smart_chef_ai_assistant/src/features/voice_control/domain/models/voice_command.dart';
 
 class RecipeStepView extends StatefulWidget {
   final Recipe recipe;
@@ -25,11 +28,51 @@ class _RecipeStepViewState extends State<RecipeStepView> {
     super.dispose();
   }
 
+  void _handleStepCommand(String param) {
+    final stepsCount = widget.recipe.steps.length;
+    
+    if (param == 'next') {
+      if (_currentPage < stepsCount - 1) {
+        _pageController.nextPage(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    } else if (param == 'prev') {
+      if (_currentPage > 0) {
+        _pageController.previousPage(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    } else {
+      // Попытка распарсить номер шага
+      final stepNumber = int.tryParse(param);
+      if (stepNumber != null) {
+        final index = stepNumber - 1; // 1-индексация -> 0-индексация
+        if (index >= 0 && index < stepsCount) {
+          _pageController.animateToPage(
+            index,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final steps = widget.recipe.steps;
-    return Column(
-      children: [
+    return BlocListener<VoiceControlBloc, VoiceControlState>(
+      listener: (context, state) {
+        if (state is VoiceCommandRecognized && 
+            state.command.action == VoiceAction.recipeStep) {
+          _handleStepCommand(state.command.parameters);
+        }
+      },
+      child: Column(
+        children: [
         // PageView для шагов
         SizedBox(
           height: 300, // Задаем высоту
@@ -96,7 +139,8 @@ class _RecipeStepViewState extends State<RecipeStepView> {
               }),
             ),
           ),
-      ],
+        ],
+      ),
     );
   }
 }

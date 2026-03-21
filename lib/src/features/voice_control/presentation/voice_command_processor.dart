@@ -5,6 +5,7 @@ import 'package:smart_chef_ai_assistant/src/features/voice_control/presentation/
 import 'package:smart_chef_ai_assistant/src/features/voice_control/presentation/handlers/open_recipe_command_handler.dart';
 import 'package:smart_chef_ai_assistant/src/features/voice_control/presentation/handlers/theme_command_handler.dart';
 import 'package:smart_chef_ai_assistant/src/features/voice_control/presentation/handlers/help_command_handler.dart';
+import 'package:smart_chef_ai_assistant/src/features/voice_control/presentation/handlers/recipe_step_command_handler.dart';
 
 class VoiceCommandProcessor {
   final List<VoiceCommandHandler> _handlers;
@@ -16,6 +17,7 @@ class VoiceCommandProcessor {
             NavigationCommandHandler(),
             ThemeCommandHandler(),
             OpenRecipeCommandHandler(),
+            RecipeStepCommandHandler(),
             HelpCommandHandler(),
           ];
 

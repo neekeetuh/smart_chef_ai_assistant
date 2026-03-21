@@ -77,7 +77,7 @@ class VoiceService {
           final text = result.recognizedWords.toLowerCase();
           if (text.contains('шеф') || text.contains('chef')) {
             print('STT WAKE WORD DETECTED!');
-            await _speechToText.stop(); // Ожидаем завершения
+            _speechToText.cancel(); // Немедленная остановка вместо ожидания
             onDetected();
           }
         },

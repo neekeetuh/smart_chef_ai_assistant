@@ -5,7 +5,6 @@ import 'package:smart_chef_ai_assistant/src/core/services/ai_service.dart';
 import 'package:smart_chef_ai_assistant/src/core/services/voice_service.dart';
 import 'package:smart_chef_ai_assistant/src/features/recipes/domain/repositories/recipe_repository_interface.dart';
 import 'package:smart_chef_ai_assistant/src/features/voice_control/domain/models/voice_command.dart';
-import 'package:speech_to_text/speech_to_text.dart';
 
 part 'voice_control_event.dart';
 part 'voice_control_state.dart';
@@ -27,7 +26,6 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
        _aiService = aiService,
        _recipeRepository = recipeRepository,
        super(const VoiceControlIdle()) {
-    
     // Регистрация глобальных обработчиков событий STT
     _voiceService.init(
       onError: (err) {
@@ -36,6 +34,12 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
       },
       onStatus: (status) {
         print('BLOC: STT Status: $status');
+        if (status == 'done' && state is VoiceControlWaitingForWakeWord) {
+          print(
+            'BLOC: STT finished unexpectedly in Wake Word mode. Restarting...',
+          );
+          add(StartWakeWordEvent());
+        }
       },
     );
 
@@ -91,7 +95,10 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
   ) async {
     print('BLOC: Wake Word Detected! Emitting detected state...');
     emit(VoiceControlWakeWordDetected());
-    await Future.delayed(const Duration(milliseconds: 500));
+
+    // Сократили задержку для более быстрого отклика
+    await Future.delayed(const Duration(milliseconds: 200));
+
     print('BLOC: Starting command listen...');
     add(StartListeningEvent());
   }
@@ -124,7 +131,9 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     Emitter<VoiceControlState> emit,
   ) async {
     if (state is! VoiceControlListening) {
-      print('BLOC: StopListeningEvent received but not in Listening state. Skipping.');
+      print(
+        'BLOC: StopListeningEvent received but not in Listening state. Skipping.',
+      );
       return;
     }
 
@@ -193,15 +202,16 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     Emitter<VoiceControlState> emit,
   ) async {
     print('BLOC: Handling Speech Error: ${event.error}');
-    
+
     // Игнорируем обычные таймауты и отсутствие распознавания для всплывашек
-    final isIgnored = event.error.contains('error_no_match') || 
-                      event.error.contains('error_speech_timeout');
+    final isIgnored =
+        event.error.contains('error_no_match') ||
+        event.error.contains('error_speech_timeout');
 
     if (!isIgnored) {
       emit(VoiceControlError(event.error));
     }
-    
+
     emit(VoiceControlIdle(isWakeWordMode: _isWakeWordMode));
     if (_isWakeWordMode) {
       print('BLOC: Restarting Wake Word after error...');

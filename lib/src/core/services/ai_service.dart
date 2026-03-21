@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gigachat_dart/gigachat_dart.dart';
+import 'package:smart_chef_ai_assistant/src/features/recipes/domain/recipe.dart';
 import 'package:smart_chef_ai_assistant/src/features/voice_control/domain/models/voice_command.dart';
 
 class AiService {
@@ -33,23 +34,36 @@ class AiService {
     }
   }
 
-  Future<VoiceCommand> classifyIntent(String transcription) async {
+  Future<VoiceCommand> classifyIntent(String transcription, {List<Recipe>? recipes}) async {
     await _ensureInitialized();
     if (_client == null) return VoiceCommand.unknown();
 
-    const systemPrompt = '''
+    String recipesContext = '';
+    if (recipes != null && recipes.isNotEmpty) {
+      recipesContext = '\nДоступные рецепты (ID и название):\n';
+      for (var r in recipes) {
+        recipesContext += '- ID: ${r.id}, название: ${r.title}\n';
+      }
+    }
+
+    final systemPrompt = '''
 Ты голосовой помощник для кулинарного приложения "Voice Chef". Твоя задача - классифицировать намерения пользователя по предоставленному тексту (транскрипции голоса).
 
 Доступные действия:
 1. "navigation" - переход на другие вкладки (настройки, избранное, главная страница).
+   Параметры: settings, favorites, home.
 2. "recipe_step" - управление шагами рецепта (следующий шаг, предыдущий шаг, шаг номер X).
+   Параметры: next, prev, <номер шага>.
 3. "theme" - смена темы приложения (светлая тема, темная тема, системная тема).
-
+   Параметры: light, dark, system.
+4. "open_recipe" - открытие конкретного рецепта по его названию.
+   Параметры: ID рецепта (обязательно из предоставленного ниже списка).
+$recipesContext
 Верни ровно ОДИН валидный JSON-объект без разметки markdown. Пример правильного формата ответа:
 {"action": "navigation", "parameters": "settings"}
 {"action": "recipe_step", "parameters": "next"}
-{"action": "recipe_step", "parameters": "3"}
 {"action": "theme", "parameters": "dark"}
+{"action": "open_recipe", "parameters": "1"}
 ''';
 
     try {

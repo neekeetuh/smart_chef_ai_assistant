@@ -109,6 +109,7 @@ class MyApp extends StatelessWidget {
               create: (context) => VoiceControlBloc(
                 voiceService: voiceService,
                 aiService: aiService,
+                recipeRepository: context.read<RecipeRepository>(),
               ),
             ),
           ],

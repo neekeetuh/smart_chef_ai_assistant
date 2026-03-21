@@ -1,3 +1,105 @@
-# smart_chef_ai_assistant
+# Voice Chef AI Assistant 🍳🤖
 
-A new Flutter project.
+**Голосовой AI-ассистент для кухни**, который помогает готовить по рецептам с помощью голосовых команд. Проект демонстрирует интеграцию Flutter, Bloc, Drift, Speech-to-Text и GigaChat.
+
+## 🚀 Быстрый старт
+
+### 1. Клонирование репозитория
+```bash
+git clone https://github.com/neekeetuh/smart_chef_ai_assistant.git
+cd smart_chef_ai_assistant
+```
+
+### 2. Установка зависимостей
+```bash
+flutter pub get
+```
+
+### 3. Настройка переменных окружения
+Создайте файл `.env` в корне проекта:
+```env
+GIGACHAT_CLIENT_ID=your_gigachat_client_id_here
+GIGACHAT_CLIENT_SECRET=your_gigachat_client_secret_here
+```
+
+### 4. Запуск приложения
+```bash
+flutter run
+```
+
+## 🛠️ Технологии
+
+### Основной стек
+- **Flutter 3.22+** - UI фреймворк
+- **Bloc** - Управление состоянием
+- **Drift** - Локальная база данных
+- **Speech-to-Text** - Распознавание речи
+- **Gemini AI** - Генерация рецептов и обработка команд
+- **AutoRoute** - Навигация
+
+### Ключевые функции
+- 🎤 **Голосовое управление** - Управление приложением без рук
+- 🤖 **AI-ассистент** - Генерация рецептов и ответы на вопросы
+- 💾 **Локальное хранилище** - Сохранение рецептов в базе данных
+- 🌓 **Адаптивная тема** - Светлая и темная темы
+- 📱 **Кроссплатформенность** - Android, iOS, Web, Desktop
+
+## 📂 Структура проекта
+
+```
+smart_chef_ai_assistant/
+├── lib/
+│   ├── main.dart              # Точка входа
+│   ├── src/
+│   │   ├── core/              # Ядро приложения
+│   │   │   ├── database/      # Drift база данных
+│   │   │   ├── navigation/    # AutoRoute навигация
+│   │   │   ├── providers/     # Провайдеры состояния
+│   │   │   ├── services/      # AI и Voice сервисы
+│   │   │   └── theme/         # Темы и стили
+│   │   ├── features/          # Функциональные модули
+│   │   │   ├── recipes/       # Управление рецептами
+│   │   │   └── voice_control/ # Голосовое управление
+│   │   └── shared/            # Общие компоненты
+│   └── .env                   # Переменные окружения
+├── pubspec.yaml               # Зависимости
+└── README.md                  # Документация
+```
+
+## 🧩 Архитектура
+
+### Слой UI
+- **Presentation** - Экраны и виджеты
+- **Bloc** - Бизнес-логика
+
+### Слой Domain
+- **Repositories** - Абстракции данных
+- **Use Cases** - Бизнес-правила
+
+### Слой Data
+- **Data Sources** - Источники данных (Drift, Mock, AI)
+- **Models** - Модели данных
+
+## 🧪 Тестирование
+
+### Unit тесты
+```bash
+flutter test unit
+```
+
+### Widget тесты
+```bash
+flutter test integration_test
+```
+
+## 🚀 CI/CD
+
+### GitHub Actions
+Автоматическое тестирование и сборка при каждом пуше:
+```yaml
+.github/workflows/flutter.yml
+```
+
+## 📝 Лицензия
+
+Этот проект является учебным и демонстрирует интеграцию различных технологий Flutter. Все права принадлежат автору.

@@ -1,16 +1,21 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_chef_ai_assistant/src/core/constants/app_strings.dart';
 
 class CoreNavigationBar extends StatelessWidget {
-  const CoreNavigationBar({super.key});
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+
+  const CoreNavigationBar({
+    required this.currentIndex,
+    required this.onTap,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final tabsRouter = AutoTabsRouter.of(context);
     return BottomNavigationBar(
-      currentIndex: tabsRouter.activeIndex,
-      onTap: tabsRouter.setActiveIndex,
+      currentIndex: currentIndex,
+      onTap: onTap,
       elevation: 0, // Убираем тень, т.к. она на BottomAppBar
       type: BottomNavigationBarType.fixed, // Чтобы элементы не смещались
       backgroundColor:

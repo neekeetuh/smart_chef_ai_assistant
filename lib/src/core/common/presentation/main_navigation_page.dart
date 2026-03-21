@@ -4,13 +4,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:smart_chef_ai_assistant/src/core/common/presentation/widgets/core_navigation_bar.dart';
 import 'package:smart_chef_ai_assistant/src/core/navigation/app_router.dart';
-import 'package:smart_chef_ai_assistant/src/core/providers/theme_provider.dart';
-import 'package:smart_chef_ai_assistant/src/features/voice_control/domain/models/voice_command.dart';
 import 'package:smart_chef_ai_assistant/src/features/voice_control/presentation/bloc/voice_control_bloc.dart';
+import 'package:smart_chef_ai_assistant/src/features/voice_control/presentation/voice_command_processor.dart';
 
 @RoutePage()
-class MainNavigationPage extends StatelessWidget {
+class MainNavigationPage extends StatefulWidget {
   const MainNavigationPage({super.key});
+
+  @override
+  State<MainNavigationPage> createState() => _MainNavigationPageState();
+}
+
+class _MainNavigationPageState extends State<MainNavigationPage> {
+  final VoiceCommandProcessor _commandProcessor = VoiceCommandProcessor();
 
   @override
   Widget build(BuildContext context) {
@@ -22,36 +28,8 @@ class MainNavigationPage extends StatelessWidget {
         return BlocListener<VoiceControlBloc, VoiceControlState>(
           listener: (context, state) {
             if (state is VoiceCommandRecognized) {
-              final cmd = state.command;
-
-              if (cmd.action == VoiceAction.navigation) {
-                if (cmd.parameters.contains('settings') ||
-                    cmd.parameters.contains('настройки')) {
-                  tabsRouter.setActiveIndex(2);
-                } else if (cmd.parameters.contains('favorite') ||
-                    cmd.parameters.contains('избранное')) {
-                  tabsRouter.setActiveIndex(1);
-                } else if (cmd.parameters.contains('home') ||
-                    cmd.parameters.contains('главная')) {
-                  tabsRouter.setActiveIndex(0);
-                }
-              } else if (cmd.action == VoiceAction.theme) {
-                final themeProvider = context.read<ThemeProvider>();
-                if (cmd.parameters.contains('dark') ||
-                    cmd.parameters.contains('тёмная') ||
-                    cmd.parameters.contains('темная')) {
-                  themeProvider.setThemeMode(ThemeMode.dark);
-                } else if (cmd.parameters.contains('light') ||
-                    cmd.parameters.contains('светлая')) {
-                  themeProvider.setThemeMode(ThemeMode.light);
-                } else if (cmd.parameters.contains('system') ||
-                    cmd.parameters.contains('системная')) {
-                  themeProvider.setThemeMode(ThemeMode.system);
-                }
-              }
+              _commandProcessor.process(context, state.command);
               // recipe_step обрабатывается внутри RecipeStepView
-            } else if (state is VoiceControlListening) {
-              // Snackbar удален, чтобы не смещать FAB
             } else if (state is VoiceControlProcessing) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -117,9 +95,12 @@ class MainNavigationPage extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 10),
               shape: const CircularNotchedRectangle(), // Вырез для FAB
               notchMargin: 6.0,
-              child: const Align(
+              child: Align(
                 alignment: AlignmentGeometry.bottomCenter,
-                child: CoreNavigationBar(),
+                child: CoreNavigationBar(
+                  currentIndex: tabsRouter.activeIndex,
+                  onTap: tabsRouter.setActiveIndex,
+                ),
               ),
             ),
 
@@ -131,3 +112,4 @@ class MainNavigationPage extends StatelessWidget {
     );
   }
 }
+

@@ -3,77 +3,16 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_chef_ai_assistant/src/core/services/ai_service.dart';
 import 'package:smart_chef_ai_assistant/src/core/services/voice_service.dart';
+import 'package:smart_chef_ai_assistant/src/features/recipes/domain/repositories/recipe_repository_interface.dart';
 import 'package:smart_chef_ai_assistant/src/features/voice_control/domain/models/voice_command.dart';
 
-// --- Events ---
-abstract class VoiceControlEvent extends Equatable {
-  const VoiceControlEvent();
+part 'voice_control_event.dart';
+part 'voice_control_state.dart';
 
-  @override
-  List<Object?> get props => [];
-}
-
-class StartListeningEvent extends VoiceControlEvent {}
-
-class StopListeningEvent extends VoiceControlEvent {}
-
-class _SpeechRecognizedEvent extends VoiceControlEvent {
-  final String text;
-  final bool isFinal;
-  const _SpeechRecognizedEvent(this.text, this.isFinal);
-
-  @override
-  List<Object?> get props => [text, isFinal];
-}
-
-class _SpeechErrorEvent extends VoiceControlEvent {
-  final String error;
-  const _SpeechErrorEvent(this.error);
-
-  @override
-  List<Object?> get props => [error];
-}
-
-// --- States ---
-abstract class VoiceControlState extends Equatable {
-  const VoiceControlState();
-
-  @override
-  List<Object?> get props => [];
-}
-
-class VoiceControlIdle extends VoiceControlState {}
-
-class VoiceControlListening extends VoiceControlState {}
-
-class VoiceControlProcessing extends VoiceControlState {
-  final String transcription;
-  const VoiceControlProcessing(this.transcription);
-
-  @override
-  List<Object?> get props => [transcription];
-}
-
-class VoiceCommandRecognized extends VoiceControlState {
-  final VoiceCommand command;
-  const VoiceCommandRecognized(this.command);
-
-  @override
-  List<Object?> get props => [command];
-}
-
-class VoiceControlError extends VoiceControlState {
-  final String message;
-  const VoiceControlError(this.message);
-
-  @override
-  List<Object?> get props => [message];
-}
-
-// --- BLoC ---
 class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
   final VoiceService _voiceService;
   final AiService _aiService;
+  final RecipeRepositoryInterface _recipeRepository;
 
   String _currentTranscription = '';
   bool _isFinalResultReceived = false;
@@ -81,8 +20,10 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
   VoiceControlBloc({
     required VoiceService voiceService,
     required AiService aiService,
+    required RecipeRepositoryInterface recipeRepository,
   }) : _voiceService = voiceService,
        _aiService = aiService,
+       _recipeRepository = recipeRepository,
        super(VoiceControlIdle()) {
     on<VoiceControlEvent>((event, emit) async {
       if (event is StartListeningEvent) {
@@ -146,7 +87,12 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     emit(VoiceControlProcessing(_currentTranscription));
 
     try {
-      final command = await _aiService.classifyIntent(_currentTranscription);
+      final recipes = await _recipeRepository.getRecipes();
+
+      final command = await _aiService.classifyIntent(
+        _currentTranscription,
+        recipes: recipes,
+      );
       print(
         'BLOC: Command recognized: ${command.action} with params ${command.parameters}',
       );

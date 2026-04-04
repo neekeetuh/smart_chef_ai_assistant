@@ -1,3 +1,4 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -5,6 +6,7 @@ import 'package:smart_chef_ai_assistant/src/core/services/ai_service.dart';
 import 'package:smart_chef_ai_assistant/src/core/services/voice_service.dart';
 import 'package:smart_chef_ai_assistant/src/features/recipes/domain/repositories/recipe_repository_interface.dart';
 import 'package:smart_chef_ai_assistant/src/features/voice_control/domain/models/voice_command.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
 part 'voice_control_event.dart';
 part 'voice_control_state.dart';
@@ -13,6 +15,7 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
   final VoiceService _voiceService;
   final AiService _aiService;
   final RecipeRepositoryInterface _recipeRepository;
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   String _currentTranscription = '';
   bool _isFinalResultReceived = false;
@@ -95,6 +98,9 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
   ) async {
     print('BLOC: Wake Word Detected! Emitting detected state...');
     emit(VoiceControlWakeWordDetected());
+
+    // Проигрываем короткий сигнал подтверждения
+    _audioPlayer.play(AssetSource('sounds/beep.mp3'));
 
     // Увеличили задержку для повышения стабильности на некоторых устройствах
     await Future.delayed(const Duration(milliseconds: 400));
@@ -237,5 +243,11 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
       await Future.delayed(const Duration(milliseconds: 500));
       add(StartWakeWordEvent());
     }
+  }
+
+  @override
+  Future<void> close() {
+    _audioPlayer.dispose();
+    return super.close();
   }
 }

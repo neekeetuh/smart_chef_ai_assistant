@@ -96,8 +96,8 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     print('BLOC: Wake Word Detected! Emitting detected state...');
     emit(VoiceControlWakeWordDetected());
 
-    // Сократили задержку для более быстрого отклика
-    await Future.delayed(const Duration(milliseconds: 200));
+    // Увеличили задержку для повышения стабильности на некоторых устройствах
+    await Future.delayed(const Duration(milliseconds: 400));
 
     print('BLOC: Starting command listen...');
     add(StartListeningEvent());
@@ -160,12 +160,30 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     emit(VoiceControlProcessing(_currentTranscription));
 
     try {
-      final recipes = await _recipeRepository.getRecipes();
+      final recipesList = await _recipeRepository.getRecipes();
 
-      final command = await _aiService.classifyIntent(
+      var command = await _aiService.classifyIntent(
         _currentTranscription,
-        recipes: recipes,
+        recipes: recipesList,
       );
+
+      // Дополнительная проверка на валидность ID рецепта
+      if (command.action == VoiceAction.openRecipe) {
+        final exists = recipesList.any((r) => r.id == command.parameters);
+
+        if (!exists ||
+            command.parameters.contains('любой') ||
+            command.parameters == 'random') {
+          if (recipesList.isNotEmpty) {
+            final randomRecipe = (recipesList..shuffle()).first;
+            print(
+              'BLOC: Recipe ID "${command.parameters}" not found or generic. Picking: ${randomRecipe.title}',
+            );
+            command = command.copyWith(parameters: randomRecipe.id);
+          }
+        }
+      }
+
       print(
         'BLOC: Command recognized: ${command.action} with params ${command.parameters}',
       );
@@ -203,10 +221,11 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
   ) async {
     print('BLOC: Handling Speech Error: ${event.error}');
 
-    // Игнорируем обычные таймауты и отсутствие распознавания для всплывашек
+    // Игнорируем обычные таймауты и системные ошибки клиента для всплывашек
     final isIgnored =
         event.error.contains('error_no_match') ||
-        event.error.contains('error_speech_timeout');
+        event.error.contains('error_speech_timeout') ||
+        event.error.contains('error_client');
 
     if (!isIgnored) {
       emit(VoiceControlError(event.error));

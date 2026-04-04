@@ -52,6 +52,7 @@ class RecipeRepository implements RecipeRepositoryInterface {
   }
 
   Recipe? getRecipeById(String id) {
-    return _recipes.firstWhere((r) => r.id == id);
+    final results = _recipes.where((r) => r.id == id);
+    return results.isEmpty ? null : results.first;
   }
 }

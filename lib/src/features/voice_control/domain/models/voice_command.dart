@@ -45,4 +45,11 @@ class VoiceCommand {
   factory VoiceCommand.unknown() {
     return VoiceCommand(action: VoiceAction.unknown, parameters: '');
   }
+
+  VoiceCommand copyWith({VoiceAction? action, String? parameters}) {
+    return VoiceCommand(
+      action: action ?? this.action,
+      parameters: parameters ?? this.parameters,
+    );
+  }
 }

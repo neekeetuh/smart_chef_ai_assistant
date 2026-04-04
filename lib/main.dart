@@ -8,6 +8,7 @@ import 'package:smart_chef_ai_assistant/src/core/navigation/app_router.dart';
 import 'package:smart_chef_ai_assistant/src/core/providers/theme_provider.dart';
 import 'package:smart_chef_ai_assistant/src/core/services/ai_service.dart';
 import 'package:smart_chef_ai_assistant/src/core/services/voice_service.dart';
+import 'package:smart_chef_ai_assistant/src/core/services/tts_service.dart';
 import 'package:smart_chef_ai_assistant/src/core/theme/app_theme.dart';
 import 'package:smart_chef_ai_assistant/src/core/theme/data/theme_data_source.dart';
 import 'package:smart_chef_ai_assistant/src/features/recipes/data/data_sources/drift_recipe_data_source.dart';
@@ -15,7 +16,6 @@ import 'package:smart_chef_ai_assistant/src/features/recipes/data/data_sources/m
 import 'package:smart_chef_ai_assistant/src/features/recipes/data/repositories/recipe_repository.dart';
 import 'package:smart_chef_ai_assistant/src/features/recipes/presentation/bloc/recipe_bloc.dart';
 import 'package:smart_chef_ai_assistant/src/features/voice_control/presentation/bloc/voice_control_bloc.dart';
-
 import 'package:smart_chef_ai_assistant/src/features/recipes/domain/repositories/recipe_repository_interface.dart';
 
 class MyHttpOverrides extends HttpOverrides {
@@ -46,6 +46,7 @@ void main() async {
   // Инициализация сервисов для голоса
   final voiceService = VoiceService();
   final aiService = AiService();
+  final ttsService = TtsService();
 
   // Обеспечиваем пред-инициализацию микрофона
   await voiceService.isReady;
@@ -54,6 +55,7 @@ void main() async {
     MyApp(
       voiceService: voiceService,
       aiService: aiService,
+      ttsService: ttsService,
       recipeRepository: recipeRepository,
       database: database,
     ),
@@ -63,6 +65,7 @@ void main() async {
 class MyApp extends StatefulWidget {
   final VoiceService voiceService;
   final AiService aiService;
+  final TtsService ttsService;
   final RecipeRepository recipeRepository;
   final AppDatabase database;
 
@@ -70,6 +73,7 @@ class MyApp extends StatefulWidget {
     super.key,
     required this.voiceService,
     required this.aiService,
+    required this.ttsService,
     required this.recipeRepository,
     required this.database,
   });
@@ -106,6 +110,7 @@ class _MyAppState extends State<MyApp> {
           RepositoryProvider<RecipeRepository>(
             create: (_) => widget.recipeRepository,
           ),
+          RepositoryProvider<TtsService>.value(value: widget.ttsService),
         ],
         child: MultiBlocProvider(
           providers: [
@@ -121,6 +126,7 @@ class _MyAppState extends State<MyApp> {
                   (context) => VoiceControlBloc(
                     voiceService: widget.voiceService,
                     aiService: widget.aiService,
+                    ttsService: widget.ttsService,
                     recipeRepository: context.read<RecipeRepository>(),
                   ),
             ),

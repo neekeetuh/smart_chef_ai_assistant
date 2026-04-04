@@ -4,6 +4,7 @@ enum VoiceAction {
   theme,
   openRecipe,
   favorite,
+  readStep,
   help,
   unknown;
 
@@ -14,6 +15,9 @@ enum VoiceAction {
       case 'recipe_step':
       case 'recipeStep':
         return VoiceAction.recipeStep;
+      case 'read_step':
+      case 'readStep':
+        return VoiceAction.readStep;
       case 'theme':
         return VoiceAction.theme;
       case 'open_recipe':

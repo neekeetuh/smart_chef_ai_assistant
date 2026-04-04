@@ -8,7 +8,9 @@ import 'package:smart_chef_ai_assistant/src/features/voice_control/domain/models
 /// пометил команду как успешно обработанную и не открывал справку.
 class RecipeStepCommandHandler implements VoiceCommandHandler {
   @override
-  bool canHandle(VoiceCommand command) => command.action == VoiceAction.recipeStep;
+  bool canHandle(VoiceCommand command) =>
+      command.action == VoiceAction.recipeStep ||
+      command.action == VoiceAction.readStep;
 
   @override
   void handle(BuildContext context, VoiceCommand command) {

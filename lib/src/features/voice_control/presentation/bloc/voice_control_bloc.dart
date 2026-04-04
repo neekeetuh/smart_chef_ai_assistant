@@ -4,9 +4,9 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_chef_ai_assistant/src/core/services/ai_service.dart';
 import 'package:smart_chef_ai_assistant/src/core/services/voice_service.dart';
+import 'package:smart_chef_ai_assistant/src/core/services/tts_service.dart';
 import 'package:smart_chef_ai_assistant/src/features/recipes/domain/repositories/recipe_repository_interface.dart';
 import 'package:smart_chef_ai_assistant/src/features/voice_control/domain/models/voice_command.dart';
-import 'package:speech_to_text/speech_to_text.dart';
 
 part 'voice_control_event.dart';
 part 'voice_control_state.dart';
@@ -14,6 +14,7 @@ part 'voice_control_state.dart';
 class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
   final VoiceService _voiceService;
   final AiService _aiService;
+  final TtsService _ttsService;
   final RecipeRepositoryInterface _recipeRepository;
   final AudioPlayer _audioPlayer = AudioPlayer();
 
@@ -24,15 +25,16 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
   VoiceControlBloc({
     required VoiceService voiceService,
     required AiService aiService,
+    required TtsService ttsService,
     required RecipeRepositoryInterface recipeRepository,
   }) : _voiceService = voiceService,
        _aiService = aiService,
+       _ttsService = ttsService,
        _recipeRepository = recipeRepository,
        super(const VoiceControlIdle()) {
     // Регистрация глобальных обработчиков событий STT
     _voiceService.init(
       onError: (err) {
-        // Мы передаем сообщение об ошибке в блок для обработки перезапуска
         add(_SpeechErrorEvent(err.errorMsg));
       },
       onStatus: (status) {
@@ -99,10 +101,8 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     print('BLOC: Wake Word Detected! Emitting detected state...');
     emit(VoiceControlWakeWordDetected());
 
-    // Проигрываем короткий сигнал подтверждения
     _audioPlayer.play(AssetSource('sounds/beep.mp3'));
 
-    // Увеличили задержку для повышения стабильности на некоторых устройствах
     await Future.delayed(const Duration(milliseconds: 400));
 
     print('BLOC: Starting command listen...');
@@ -114,6 +114,10 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     Emitter<VoiceControlState> emit,
   ) async {
     print('BLOC: StartListeningEvent');
+    
+    // Останавливаем любую текущую озвучку перед началом записи
+    await _ttsService.stop();
+    
     _currentTranscription = '';
     _isFinalResultReceived = false;
     emit(VoiceControlListening());
@@ -121,7 +125,6 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     try {
       await _voiceService.startListening(
         onResult: (text, isFinal) {
-          print('BLOC CALLBACK: text="$text", isFinal=$isFinal');
           _currentTranscription = text;
           _isFinalResultReceived = isFinal;
           add(_SpeechRecognizedEvent(text, isFinal));
@@ -136,17 +139,11 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     StopListeningEvent event,
     Emitter<VoiceControlState> emit,
   ) async {
-    if (state is! VoiceControlListening) {
-      print(
-        'BLOC: StopListeningEvent received but not in Listening state. Skipping.',
-      );
-      return;
-    }
+    if (state is! VoiceControlListening) return;
 
     print('BLOC: StopListeningEvent. Requesting stop...');
     await _voiceService.stopListening();
 
-    // Ждем, пока плагин выдаст ФИНАЛЬНЫЙ результат.
     int retry = 0;
     while (!_isFinalResultReceived && retry < 15) {
       await Future.delayed(const Duration(milliseconds: 100));
@@ -154,15 +151,12 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     }
 
     if (_currentTranscription.isEmpty) {
-      print('BLOC: Transcription is EMPTY after waiting. Returning to Idle.');
       emit(VoiceControlIdle(isWakeWordMode: _isWakeWordMode));
       if (_isWakeWordMode) add(StartWakeWordEvent());
       return;
     }
 
-    print(
-      'BLOC: Final processing transcription: "$_currentTranscription" (Final: $_isFinalResultReceived)',
-    );
+    print('BLOC: Final processing transcription: "$_currentTranscription"');
     emit(VoiceControlProcessing(_currentTranscription));
 
     try {
@@ -173,33 +167,23 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
         recipes: recipesList,
       );
 
-      // Дополнительная проверка на валидность ID рецепта
       if (command.action == VoiceAction.openRecipe) {
         final exists = recipesList.any((r) => r.id == command.parameters);
-
-        if (!exists ||
-            command.parameters.contains('любой') ||
-            command.parameters == 'random') {
+        if (!exists || command.parameters.contains('любой') || command.parameters == 'random') {
           if (recipesList.isNotEmpty) {
             final randomRecipe = (recipesList..shuffle()).first;
-            print(
-              'BLOC: Recipe ID "${command.parameters}" not found or generic. Picking: ${randomRecipe.title}',
-            );
             command = command.copyWith(parameters: randomRecipe.id);
           }
         }
       }
 
-      print(
-        'BLOC: Command recognized: ${command.action} with params ${command.parameters}',
-      );
+      print('BLOC: Command recognized: ${command.action}');
       emit(VoiceCommandRecognized(command));
     } catch (e) {
       print('BLOC ERROR GigaChat: $e');
       emit(VoiceControlError('Failed to process command: $e'));
     }
 
-    // Возвращаемся в Idle после выполнения
     emit(VoiceControlIdle(isWakeWordMode: _isWakeWordMode));
     if (_isWakeWordMode) {
       await Future.delayed(const Duration(milliseconds: 500));
@@ -211,12 +195,10 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     _SpeechRecognizedEvent event,
     Emitter<VoiceControlState> emit,
   ) async {
-    print('BLOC: Recognized: "${event.text}" (Final: ${event.isFinal})');
     _currentTranscription = event.text;
     _isFinalResultReceived = event.isFinal;
 
     if (event.isFinal && state is VoiceControlListening) {
-      print('BLOC: Final result received. Triggering automatic stop/process.');
       add(StopListeningEvent());
     }
   }
@@ -227,7 +209,6 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
   ) async {
     print('BLOC: Handling Speech Error: ${event.error}');
 
-    // Игнорируем обычные таймауты и системные ошибки клиента для всплывашек
     final isIgnored =
         event.error.contains('error_no_match') ||
         event.error.contains('error_speech_timeout') ||
@@ -239,7 +220,6 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
 
     emit(VoiceControlIdle(isWakeWordMode: _isWakeWordMode));
     if (_isWakeWordMode) {
-      print('BLOC: Restarting Wake Word after error...');
       await Future.delayed(const Duration(milliseconds: 500));
       add(StartWakeWordEvent());
     }
@@ -248,6 +228,7 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
   @override
   Future<void> close() {
     _audioPlayer.dispose();
+    _ttsService.stop();
     return super.close();
   }
 }

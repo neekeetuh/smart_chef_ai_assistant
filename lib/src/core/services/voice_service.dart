@@ -60,10 +60,13 @@ class VoiceService {
           );
           onResult(result.recognizedWords, result.finalResult);
         },
-        listenFor: const Duration(seconds: 60),
-        pauseFor: const Duration(seconds: 30),
+        listenFor: const Duration(seconds: 30),
+        pauseFor: const Duration(seconds: 10),
         localeId: 'ru_RU',
-        listenOptions: SpeechListenOptions(cancelOnError: true),
+        listenOptions: SpeechListenOptions(
+          cancelOnError: true,
+          onDevice: true,
+        ),
       );
     } else {
       developer.log('STT is Not Ready', name: 'VoiceService', level: 1000);

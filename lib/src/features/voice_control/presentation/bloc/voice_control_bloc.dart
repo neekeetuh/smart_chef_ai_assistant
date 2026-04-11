@@ -55,7 +55,7 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
 
           if (canRestart) {
             _cancelRestartTimer();
-            _restartTimer = Timer(const Duration(milliseconds: 100), () {
+            _restartTimer = Timer(const Duration(milliseconds: 300), () {
               if (_isWakeWordMode &&
                   (state is VoiceControlWaitingForWakeWord ||
                       state is VoiceControlIdle ||
@@ -131,7 +131,7 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
 
     _audioPlayer.play(AssetSource('sounds/beep.mp3'));
 
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future.delayed(const Duration(milliseconds: 800));
 
     developer.log('Starting command listen...', name: 'VoiceControlBloc');
     add(StartListeningEvent());
@@ -265,7 +265,7 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
 
     if (_isWakeWordMode) {
       _cancelRestartTimer();
-      _restartTimer = Timer(const Duration(milliseconds: 100), () {
+      _restartTimer = Timer(const Duration(milliseconds: 300), () {
         if (_isWakeWordMode &&
             (state is VoiceControlIdle || state is VoiceControlError)) {
           add(StartWakeWordEvent());

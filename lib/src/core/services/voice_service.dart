@@ -60,8 +60,8 @@ class VoiceService {
           );
           onResult(result.recognizedWords, result.finalResult);
         },
-        listenFor: const Duration(seconds: 30),
-        pauseFor: const Duration(seconds: 10), // Увеличили таймаут тишины
+        listenFor: const Duration(seconds: 60),
+        pauseFor: const Duration(seconds: 30),
         localeId: 'ru_RU',
         listenOptions: SpeechListenOptions(cancelOnError: true),
       );
@@ -85,8 +85,8 @@ class VoiceService {
             onDetected();
           }
         },
-        listenFor: const Duration(minutes: 1),
-        pauseFor: const Duration(seconds: 30),
+        listenFor: const Duration(hours: 1), // Почти бесконечно
+        pauseFor: const Duration(hours: 1), // Не прерываемся по тишине
         localeId: 'ru_RU',
       );
     }

@@ -265,7 +265,13 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
 
     if (_isWakeWordMode) {
       _cancelRestartTimer();
-      _restartTimer = Timer(const Duration(milliseconds: 300), () {
+      
+      // Если это таймаут, значит движок уже сам закрылся и готов к работе.
+      // Можно перезапускать мгновенно, не дожидаясь 300мс.
+      final isTimeout = event.error.contains('error_speech_timeout');
+      final delay = isTimeout ? 0 : 300;
+
+      _restartTimer = Timer(Duration(milliseconds: delay), () {
         if (_isWakeWordMode &&
             (state is VoiceControlIdle || state is VoiceControlError)) {
           add(StartWakeWordEvent());

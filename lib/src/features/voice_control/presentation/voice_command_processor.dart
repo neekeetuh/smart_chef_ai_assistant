@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:flutter/widgets.dart';
 import 'package:smart_chef_ai_assistant/src/features/voice_control/domain/handlers/voice_command_handler.dart';
 import 'package:smart_chef_ai_assistant/src/features/voice_control/domain/models/voice_command.dart';
@@ -25,7 +26,7 @@ class VoiceCommandProcessor {
 
   bool process(BuildContext context, VoiceCommand command) {
     if (command.action == VoiceAction.unknown) {
-      print('VoiceCommandProcessor: Unknown action');
+      developer.log('Unknown action', name: 'VoiceCommandProcessor');
       return false;
     }
 
@@ -35,7 +36,7 @@ class VoiceCommandProcessor {
         return true;
       }
     }
-    print('VoiceCommandProcessor: No handler found for ${command.action}');
+    developer.log('No handler found for ${command.action}', name: 'VoiceCommandProcessor');
     return false;
   }
 }

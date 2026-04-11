@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -12,11 +13,11 @@ class VoiceService {
     if (_isInitialized) return true;
     _isInitialized = await _speechToText.initialize(
       onError: (val) {
-        print('STT Error Callback: $val');
+        developer.log('STT Error Callback: $val', name: 'VoiceService', level: 1000);
         onError(val);
       },
       onStatus: (val) {
-        print('STT Status Callback: $val');
+        developer.log('STT Status Callback: $val', name: 'VoiceService');
         onStatus(val);
       },
     );
@@ -41,16 +42,17 @@ class VoiceService {
   }) async {
     final hasPermission = await requestMicrophonePermission();
     if (!hasPermission) {
-      print('STT Permission Denied');
+      developer.log('STT Permission Denied', name: 'VoiceService', level: 1000);
       return;
     }
 
     if (await isReady) {
-      print('STT Start Listening...');
+      developer.log('STT Start Listening...', name: 'VoiceService');
       await _speechToText.listen(
         onResult: (result) {
-          print(
+          developer.log(
             'STT Result: ${result.recognizedWords} (Final: ${result.finalResult})',
+            name: 'VoiceService',
           );
           onResult(result.recognizedWords, result.finalResult);
         },
@@ -60,7 +62,7 @@ class VoiceService {
         listenOptions: SpeechListenOptions(cancelOnError: true),
       );
     } else {
-      print('STT is Not Ready');
+      developer.log('STT is Not Ready', name: 'VoiceService', level: 1000);
     }
   }
 
@@ -71,12 +73,12 @@ class VoiceService {
     if (!hasPermission) return;
 
     if (await isReady) {
-      print('STT Wake Word Detection Started...');
+      developer.log('STT Wake Word Detection Started...', name: 'VoiceService');
       await _speechToText.listen(
         onResult: (result) async {
           final text = result.recognizedWords.toLowerCase();
           if (text.contains('шеф') || text.contains('chef')) {
-            print('STT WAKE WORD DETECTED!');
+            developer.log('STT WAKE WORD DETECTED!', name: 'VoiceService');
             _speechToText.cancel(); // Немедленная остановка вместо ожидания
             onDetected();
           }

@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -18,13 +19,13 @@ class FavoriteCommandHandler implements VoiceCommandHandler {
     if (command.parameters == 'current') {
       // Ищем ID текущего рецепта через самый верхний активный маршрут
       final topRoute = router.topRoute;
-      print('FavoriteCommandHandler: Current top route: ${topRoute.name}');
+      developer.log('Current top route: ${topRoute.name}', name: 'FavoriteCommandHandler');
       
       if (topRoute.name == RecipeDetailRoute.name) {
         recipeId = topRoute.pathParams.getString('recipeId');
-        print('FavoriteCommandHandler: Contextual ID found: $recipeId');
+        developer.log('Contextual ID found: $recipeId', name: 'FavoriteCommandHandler');
       } else {
-        print('FavoriteCommandHandler: Not on RecipeDetailRoute.');
+        developer.log('Not on RecipeDetailRoute.', name: 'FavoriteCommandHandler');
       }
     } else if (command.parameters.isNotEmpty) {
       // Использовать ID предоставленный в параметрах (из GigaChat)

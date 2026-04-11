@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_chef_ai_assistant/src/core/providers/theme_provider.dart';
@@ -12,7 +13,7 @@ class ThemeCommandHandler implements VoiceCommandHandler {
   void handle(BuildContext context, VoiceCommand command) {
     final themeProvider = context.read<ThemeProvider>();
     final param = command.parameters.toLowerCase();
-    print('ThemeCommandHandler: processing param "$param"');
+    developer.log('processing param "$param"', name: 'ThemeCommandHandler');
 
     // 1. Проверяем явное переключение на противоположную тему
     if (param.contains('toggle') || 
@@ -20,7 +21,7 @@ class ThemeCommandHandler implements VoiceCommandHandler {
         param.contains('переключи') ||
         param.contains('поменяй')) {
       final currentMode = themeProvider.themeMode;
-      print('ThemeCommandHandler: Toggling theme. Current mode: $currentMode');
+      developer.log('Toggling theme. Current mode: $currentMode', name: 'ThemeCommandHandler');
       
       bool isCurrentlyDark;
       if (currentMode == ThemeMode.system) {
@@ -30,7 +31,7 @@ class ThemeCommandHandler implements VoiceCommandHandler {
       }
 
       final targetMode = isCurrentlyDark ? ThemeMode.light : ThemeMode.dark;
-      print('ThemeCommandHandler: Setting target mode: $targetMode');
+      developer.log('Setting target mode: $targetMode', name: 'ThemeCommandHandler');
       themeProvider.setThemeMode(targetMode);
       return;
     }

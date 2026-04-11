@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
@@ -38,10 +39,11 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
         add(_SpeechErrorEvent(err.errorMsg));
       },
       onStatus: (status) {
-        print('BLOC: STT Status: $status');
+        developer.log('STT Status: $status', name: 'VoiceControlBloc');
         if (status == 'done' && state is VoiceControlWaitingForWakeWord) {
-          print(
-            'BLOC: STT finished unexpectedly in Wake Word mode. Restarting...',
+          developer.log(
+            'STT finished unexpectedly in Wake Word mode. Restarting...',
+            name: 'VoiceControlBloc',
           );
           add(StartWakeWordEvent());
         }
@@ -72,7 +74,7 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     Emitter<VoiceControlState> emit,
   ) {
     _isWakeWordMode = !_isWakeWordMode;
-    print('BLOC: ToggleWakeWordMode is now $_isWakeWordMode');
+    developer.log('ToggleWakeWordMode is now $_isWakeWordMode', name: 'VoiceControlBloc');
     if (_isWakeWordMode) {
       add(StartWakeWordEvent());
     } else {
@@ -98,14 +100,14 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     _WakeWordDetectedEvent event,
     Emitter<VoiceControlState> emit,
   ) async {
-    print('BLOC: Wake Word Detected! Emitting detected state...');
+    developer.log('Wake Word Detected! Emitting detected state...', name: 'VoiceControlBloc');
     emit(VoiceControlWakeWordDetected());
 
     _audioPlayer.play(AssetSource('sounds/beep.mp3'));
 
     await Future.delayed(const Duration(milliseconds: 400));
 
-    print('BLOC: Starting command listen...');
+    developer.log('Starting command listen...', name: 'VoiceControlBloc');
     add(StartListeningEvent());
   }
 
@@ -113,7 +115,7 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     StartListeningEvent event,
     Emitter<VoiceControlState> emit,
   ) async {
-    print('BLOC: StartListeningEvent');
+    developer.log('StartListeningEvent', name: 'VoiceControlBloc');
     
     // Останавливаем любую текущую озвучку перед началом записи
     await _ttsService.stop();
@@ -141,7 +143,7 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
   ) async {
     if (state is! VoiceControlListening) return;
 
-    print('BLOC: StopListeningEvent. Requesting stop...');
+    developer.log('StopListeningEvent. Requesting stop...', name: 'VoiceControlBloc');
     await _voiceService.stopListening();
 
     int retry = 0;
@@ -156,7 +158,7 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
       return;
     }
 
-    print('BLOC: Final processing transcription: "$_currentTranscription"');
+    developer.log('Final processing transcription: "$_currentTranscription"', name: 'VoiceControlBloc');
     emit(VoiceControlProcessing(_currentTranscription));
 
     try {
@@ -177,10 +179,10 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
         }
       }
 
-      print('BLOC: Command recognized: ${command.action}');
+      developer.log('Command recognized: ${command.action}', name: 'VoiceControlBloc');
       emit(VoiceCommandRecognized(command));
     } catch (e) {
-      print('BLOC ERROR GigaChat: $e');
+      developer.log('ERROR GigaChat: $e', name: 'VoiceControlBloc', error: e);
       emit(VoiceControlError('Failed to process command: $e'));
     }
 
@@ -207,7 +209,7 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     _SpeechErrorEvent event,
     Emitter<VoiceControlState> emit,
   ) async {
-    print('BLOC: Handling Speech Error: ${event.error}');
+    developer.log('Handling Speech Error: ${event.error}', name: 'VoiceControlBloc');
 
     final isIgnored =
         event.error.contains('error_no_match') ||

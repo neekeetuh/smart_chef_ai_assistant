@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gigachat_dart/gigachat_dart.dart';
 import 'package:smart_chef_ai_assistant/src/features/recipes/domain/recipe.dart';
@@ -16,8 +17,10 @@ class AiService {
     final clientSecret = dotenv.env['GIGACHAT_CLIENT_SECRET'];
 
     if (clientId == null || clientSecret == null) {
-      print(
-        'ERROR: GIGACHAT_CLIENT_ID or GIGACHAT_CLIENT_SECRET is not defined in .env file',
+      developer.log(
+        'GIGACHAT_CLIENT_ID or GIGACHAT_CLIENT_SECRET is not defined in .env file',
+        name: 'AiService',
+        level: 1000,
       );
       return;
     }
@@ -30,7 +33,7 @@ class AiService {
         scope: 'GIGACHAT_API_PERS',
       );
     } catch (e) {
-      print('GigaChat Initialization Error: $e');
+      developer.log('GigaChat Initialization Error: $e', name: 'AiService', error: e);
     }
   }
 
@@ -80,7 +83,7 @@ $recipesContext
 ''';
 
     try {
-      print('GigaChat: Отправка запроса для: "$transcription"');
+      developer.log('GigaChat: Отправка запроса для: "$transcription"', name: 'AiService');
 
       final response = await _client!.generateChatCompletion(
         request: Chat(
@@ -95,17 +98,17 @@ $recipesContext
 
       final choices = response.choices;
       if (choices == null || choices.isEmpty) {
-        print('GigaChat Warning: Empty choices in response');
+        developer.log('GigaChat Warning: Empty choices in response', name: 'AiService');
         return VoiceCommand.unknown();
       }
 
       final content = choices.first.message?.content;
       if (content == null) {
-        print('GigaChat Warning: Empty content in first choice');
+        developer.log('GigaChat Warning: Empty content in first choice', name: 'AiService');
         return VoiceCommand.unknown();
       }
 
-      print('GigaChat Content: $content');
+      developer.log('GigaChat Content: $content', name: 'AiService');
 
       // Более надежное извлечение JSON: ищем первую '{' и последнюю '}'
       // Это поможет, если модель добавила лишний текст до или после JSON
@@ -127,11 +130,11 @@ $recipesContext
         final Map<String, dynamic> jsonMap = jsonDecode(jsonText);
         return VoiceCommand.fromJson(jsonMap);
       } catch (e) {
-        print('JSON Parsing Error in AiService: $e. Content was: $jsonText');
+        developer.log('JSON Parsing Error in AiService: $e. Content was: $jsonText', name: 'AiService', error: e);
         return VoiceCommand.unknown();
       }
     } catch (e) {
-      print('GigaChat Critical Error: $e');
+      developer.log('GigaChat Critical Error: $e', name: 'AiService', error: e);
     }
 
     return VoiceCommand.unknown();

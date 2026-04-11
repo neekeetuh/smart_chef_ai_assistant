@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:flutter_tts/flutter_tts.dart';
 
 class TtsService {
@@ -15,7 +16,7 @@ class TtsService {
 
     try {
       final dynamic engines = await _flutterTts.getEngines;
-      print('TTS: Available engines: $engines');
+      developer.log('Available engines: $engines', name: 'TtsService');
 
       final dynamic voices = await _flutterTts.getVoices;
       if (voices is List) {
@@ -24,7 +25,7 @@ class TtsService {
           return loc.startsWith('ru');
         }).toList();
 
-        print('TTS: Found ${ruVoices.length} RU-compatible voices.');
+        developer.log('Found ${ruVoices.length} RU-compatible voices.', name: 'TtsService');
 
         // Список подстрок, которые обычно указывают на мужской голос в разных системах
         const malePatterns = [
@@ -51,21 +52,22 @@ class TtsService {
               "locale": voice['locale'],
             });
             await _flutterTts.setPitch(0.85);
-            print('TTS: Selected male voice: $name');
+            developer.log('Selected male voice: $name', name: 'TtsService');
             maleFound = true;
             break;
           }
         }
 
         if (!maleFound) {
-          print(
-            'TTS: No male patterns found. Using default voice with low pitch.',
+          developer.log(
+            'No male patterns found. Using default voice with low pitch.',
+            name: 'TtsService',
           );
           await _flutterTts.setPitch(0.7);
         }
       }
     } catch (e) {
-      print('TTS: Critical init error: $e');
+      developer.log('Critical init error: $e', name: 'TtsService', error: e);
     }
   }
 

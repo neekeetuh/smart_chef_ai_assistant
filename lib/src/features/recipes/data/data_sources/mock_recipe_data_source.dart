@@ -220,7 +220,7 @@ class MockRecipeDataSource {
     await Future.delayed(const Duration(milliseconds: 300));
 
     List<Recipe> recipes = [];
-    const int repetitionCount = 4; // 5 рецептов * 4 раза = 20
+    const int repetitionCount = 1; // 5 рецептов * 4 раза = 20
 
     for (int i = 0; i < repetitionCount; i++) {
       for (int j = 0; j < _baseRecipes.length; j++) {

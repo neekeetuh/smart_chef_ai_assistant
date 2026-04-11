@@ -12,7 +12,9 @@ class GlobalVoiceAppBarAction extends StatelessWidget {
         final isModeOn = (state is VoiceControlIdle && state.isWakeWordMode) ||
             state is VoiceControlWaitingForWakeWord ||
             state is VoiceControlWakeWordDetected ||
-            state is VoiceControlListening;
+            state is VoiceControlListening ||
+            state is VoiceControlProcessing ||
+            state is VoiceCommandRecognized;
 
         final isDark = Theme.of(context).brightness == Brightness.dark;
         

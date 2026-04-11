@@ -13,7 +13,11 @@ class VoiceService {
     if (_isInitialized) return true;
     _isInitialized = await _speechToText.initialize(
       onError: (val) {
-        developer.log('STT Error Callback: $val', name: 'VoiceService', level: 1000);
+        developer.log(
+          'STT Error Callback: $val',
+          name: 'VoiceService',
+          level: 1000,
+        );
         onError(val);
       },
       onStatus: (val) {
@@ -66,9 +70,7 @@ class VoiceService {
     }
   }
 
-  Future<void> startWakeWordDetection({
-    required Function() onDetected,
-  }) async {
+  Future<void> startWakeWordDetection({required Function() onDetected}) async {
     final hasPermission = await requestMicrophonePermission();
     if (!hasPermission) return;
 

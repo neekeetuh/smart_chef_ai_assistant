@@ -40,12 +40,32 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
       },
       onStatus: (status) {
         developer.log('STT Status: $status', name: 'VoiceControlBloc');
-        if (status == 'done' && state is VoiceControlWaitingForWakeWord) {
-          developer.log(
-            'STT finished unexpectedly in Wake Word mode. Restarting...',
-            name: 'VoiceControlBloc',
-          );
-          add(StartWakeWordEvent());
+
+        // Перезапускаем только если мы в режиме прослушивания ключевого слова
+        // и сессия закончилась (status == 'done' или 'notListening')
+        if ((status == 'done' || status == 'notListening') && _isWakeWordMode) {
+          // Проверяем, что мы не находимся в процессе записи РЕАЛЬНОЙ команды
+          // (когда state — VoiceControlListening или VoiceControlProcessing)
+          final canRestart =
+              state is VoiceControlWaitingForWakeWord ||
+              state is VoiceControlIdle ||
+              state is VoiceControlError;
+
+          if (canRestart) {
+            developer.log(
+              'STT session ended. Scheduling restart in 1s...',
+              name: 'VoiceControlBloc',
+            );
+
+            Future.delayed(const Duration(seconds: 1), () {
+              if (_isWakeWordMode &&
+                  (state is VoiceControlWaitingForWakeWord ||
+                      state is VoiceControlIdle ||
+                      state is VoiceControlError)) {
+                add(StartWakeWordEvent());
+              }
+            });
+          }
         }
       },
     );
@@ -74,7 +94,10 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     Emitter<VoiceControlState> emit,
   ) {
     _isWakeWordMode = !_isWakeWordMode;
-    developer.log('ToggleWakeWordMode is now $_isWakeWordMode', name: 'VoiceControlBloc');
+    developer.log(
+      'ToggleWakeWordMode is now $_isWakeWordMode',
+      name: 'VoiceControlBloc',
+    );
     if (_isWakeWordMode) {
       add(StartWakeWordEvent());
     } else {
@@ -100,7 +123,10 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     _WakeWordDetectedEvent event,
     Emitter<VoiceControlState> emit,
   ) async {
-    developer.log('Wake Word Detected! Emitting detected state...', name: 'VoiceControlBloc');
+    developer.log(
+      'Wake Word Detected! Emitting detected state...',
+      name: 'VoiceControlBloc',
+    );
     emit(VoiceControlWakeWordDetected());
 
     _audioPlayer.play(AssetSource('sounds/beep.mp3'));
@@ -116,10 +142,10 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     Emitter<VoiceControlState> emit,
   ) async {
     developer.log('StartListeningEvent', name: 'VoiceControlBloc');
-    
+
     // Останавливаем любую текущую озвучку перед началом записи
     await _ttsService.stop();
-    
+
     _currentTranscription = '';
     _isFinalResultReceived = false;
     emit(VoiceControlListening());
@@ -143,7 +169,10 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
   ) async {
     if (state is! VoiceControlListening) return;
 
-    developer.log('StopListeningEvent. Requesting stop...', name: 'VoiceControlBloc');
+    developer.log(
+      'StopListeningEvent. Requesting stop...',
+      name: 'VoiceControlBloc',
+    );
     await _voiceService.stopListening();
 
     int retry = 0;
@@ -158,7 +187,10 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
       return;
     }
 
-    developer.log('Final processing transcription: "$_currentTranscription"', name: 'VoiceControlBloc');
+    developer.log(
+      'Final processing transcription: "$_currentTranscription"',
+      name: 'VoiceControlBloc',
+    );
     emit(VoiceControlProcessing(_currentTranscription));
 
     try {
@@ -171,7 +203,9 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
 
       if (command.action == VoiceAction.openRecipe) {
         final exists = recipesList.any((r) => r.id == command.parameters);
-        if (!exists || command.parameters.contains('любой') || command.parameters == 'random') {
+        if (!exists ||
+            command.parameters.contains('любой') ||
+            command.parameters == 'random') {
           if (recipesList.isNotEmpty) {
             final randomRecipe = (recipesList..shuffle()).first;
             command = command.copyWith(parameters: randomRecipe.id);
@@ -179,7 +213,10 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
         }
       }
 
-      developer.log('Command recognized: ${command.action}', name: 'VoiceControlBloc');
+      developer.log(
+        'Command recognized: ${command.action}',
+        name: 'VoiceControlBloc',
+      );
       emit(VoiceCommandRecognized(command));
     } catch (e) {
       developer.log('ERROR GigaChat: $e', name: 'VoiceControlBloc', error: e);
@@ -209,7 +246,10 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     _SpeechErrorEvent event,
     Emitter<VoiceControlState> emit,
   ) async {
-    developer.log('Handling Speech Error: ${event.error}', name: 'VoiceControlBloc');
+    developer.log(
+      'Handling Speech Error: ${event.error}',
+      name: 'VoiceControlBloc',
+    );
 
     final isIgnored =
         event.error.contains('error_no_match') ||
@@ -221,9 +261,18 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     }
 
     emit(VoiceControlIdle(isWakeWordMode: _isWakeWordMode));
+
     if (_isWakeWordMode) {
-      await Future.delayed(const Duration(milliseconds: 500));
-      add(StartWakeWordEvent());
+      developer.log(
+        'Error occurred. Scheduling rescue restart in 1.5s...',
+        name: 'VoiceControlBloc',
+      );
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        if (_isWakeWordMode &&
+            (state is VoiceControlIdle || state is VoiceControlError)) {
+          add(StartWakeWordEvent());
+        }
+      });
     }
   }
 

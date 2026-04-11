@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer' as developer;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
@@ -22,6 +23,7 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
   String _currentTranscription = '';
   bool _isFinalResultReceived = false;
   bool _isWakeWordMode = false;
+  Timer? _restartTimer;
 
   VoiceControlBloc({
     required VoiceService voiceService,
@@ -52,12 +54,8 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
               state is VoiceControlError;
 
           if (canRestart) {
-            developer.log(
-              'STT session ended. Scheduling restart in 1s...',
-              name: 'VoiceControlBloc',
-            );
-
-            Future.delayed(const Duration(seconds: 1), () {
+            _cancelRestartTimer();
+            _restartTimer = Timer(const Duration(milliseconds: 100), () {
               if (_isWakeWordMode &&
                   (state is VoiceControlWaitingForWakeWord ||
                       state is VoiceControlIdle ||
@@ -93,6 +91,7 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     ToggleWakeWordEvent event,
     Emitter<VoiceControlState> emit,
   ) {
+    _cancelRestartTimer();
     _isWakeWordMode = !_isWakeWordMode;
     developer.log(
       'ToggleWakeWordMode is now $_isWakeWordMode',
@@ -123,6 +122,7 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     _WakeWordDetectedEvent event,
     Emitter<VoiceControlState> emit,
   ) async {
+    _cancelRestartTimer();
     developer.log(
       'Wake Word Detected! Emitting detected state...',
       name: 'VoiceControlBloc',
@@ -141,6 +141,7 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     StartListeningEvent event,
     Emitter<VoiceControlState> emit,
   ) async {
+    _cancelRestartTimer();
     developer.log('StartListeningEvent', name: 'VoiceControlBloc');
 
     // Останавливаем любую текущую озвучку перед началом записи
@@ -263,11 +264,8 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     emit(VoiceControlIdle(isWakeWordMode: _isWakeWordMode));
 
     if (_isWakeWordMode) {
-      developer.log(
-        'Error occurred. Scheduling rescue restart in 1.5s...',
-        name: 'VoiceControlBloc',
-      );
-      Future.delayed(const Duration(milliseconds: 1500), () {
+      _cancelRestartTimer();
+      _restartTimer = Timer(const Duration(milliseconds: 100), () {
         if (_isWakeWordMode &&
             (state is VoiceControlIdle || state is VoiceControlError)) {
           add(StartWakeWordEvent());
@@ -276,8 +274,14 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     }
   }
 
+  void _cancelRestartTimer() {
+    _restartTimer?.cancel();
+    _restartTimer = null;
+  }
+
   @override
   Future<void> close() {
+    _cancelRestartTimer();
     _audioPlayer.dispose();
     _ttsService.stop();
     return super.close();

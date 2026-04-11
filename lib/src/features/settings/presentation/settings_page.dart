@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:provider/provider.dart';
 import 'package:smart_chef_ai_assistant/src/core/constants/app_strings.dart';
 import 'package:smart_chef_ai_assistant/src/core/providers/theme_provider.dart';
 
@@ -18,7 +17,8 @@ class SettingsPage extends StatelessWidget {
       builder: (context) {
         return BlocBuilder<VoiceControlBloc, VoiceControlState>(
           builder: (context, state) {
-            final isWakeWord = (state is VoiceControlIdle && state.isWakeWordMode) ||
+            final isWakeWord =
+                (state is VoiceControlIdle && state.isWakeWordMode) ||
                 state is VoiceControlWaitingForWakeWord ||
                 state is VoiceControlWakeWordDetected ||
                 state is VoiceControlListening;
@@ -26,27 +26,28 @@ class SettingsPage extends StatelessWidget {
             return SimpleDialog(
               title: const Text('Режим активации голоса'),
               children: [
-                RadioListTile<bool>(
-                  title: const Text('Зажатие кнопки (по умолчанию)'),
-                  value: false,
+                RadioGroup<bool>(
                   groupValue: isWakeWord,
                   onChanged: (value) {
-                    if (isWakeWord) {
-                      context.read<VoiceControlBloc>().add(ToggleWakeWordEvent());
+                    if (value != null && value != isWakeWord) {
+                      context.read<VoiceControlBloc>().add(
+                        ToggleWakeWordEvent(),
+                      );
                     }
                     Navigator.pop(context);
                   },
-                ),
-                RadioListTile<bool>(
-                  title: const Text('Кодовое слово "Шеф" (Hands-free)'),
-                  value: true,
-                  groupValue: isWakeWord,
-                  onChanged: (value) {
-                    if (!isWakeWord) {
-                      context.read<VoiceControlBloc>().add(ToggleWakeWordEvent());
-                    }
-                    Navigator.pop(context);
-                  },
+                  child: const Column(
+                    children: [
+                      RadioListTile<bool>(
+                        title: Text('Зажатие кнопки (по умолчанию)'),
+                        value: false,
+                      ),
+                      RadioListTile<bool>(
+                        title: Text('Кодовое слово "Шеф" (Hands-free)'),
+                        value: true,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             );
@@ -77,8 +78,8 @@ class SettingsPage extends StatelessWidget {
             value: isDark,
             onChanged: (value) {
               context.read<ThemeProvider>().setThemeMode(
-                    value ? ThemeMode.dark : ThemeMode.light,
-                  );
+                value ? ThemeMode.dark : ThemeMode.light,
+              );
             },
           ),
 

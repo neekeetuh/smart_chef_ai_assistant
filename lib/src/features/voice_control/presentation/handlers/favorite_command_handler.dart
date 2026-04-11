@@ -9,7 +9,8 @@ import 'package:smart_chef_ai_assistant/src/features/voice_control/domain/models
 
 class FavoriteCommandHandler implements VoiceCommandHandler {
   @override
-  bool canHandle(VoiceCommand command) => command.action == VoiceAction.favorite;
+  bool canHandle(VoiceCommand command) =>
+      command.action == VoiceAction.favorite;
 
   @override
   void handle(BuildContext context, VoiceCommand command) {
@@ -19,13 +20,22 @@ class FavoriteCommandHandler implements VoiceCommandHandler {
     if (command.parameters == 'current') {
       // Ищем ID текущего рецепта через самый верхний активный маршрут
       final topRoute = router.topRoute;
-      developer.log('Current top route: ${topRoute.name}', name: 'FavoriteCommandHandler');
-      
+      developer.log(
+        'Current top route: ${topRoute.name}',
+        name: 'FavoriteCommandHandler',
+      );
+
       if (topRoute.name == RecipeDetailRoute.name) {
-        recipeId = topRoute.pathParams.getString('recipeId');
-        developer.log('Contextual ID found: $recipeId', name: 'FavoriteCommandHandler');
+        recipeId = topRoute.params.getString('recipeId');
+        developer.log(
+          'Contextual ID found: $recipeId',
+          name: 'FavoriteCommandHandler',
+        );
       } else {
-        developer.log('Not on RecipeDetailRoute.', name: 'FavoriteCommandHandler');
+        developer.log(
+          'Not on RecipeDetailRoute.',
+          name: 'FavoriteCommandHandler',
+        );
       }
     } else if (command.parameters.isNotEmpty) {
       // Использовать ID предоставленный в параметрах (из GigaChat)

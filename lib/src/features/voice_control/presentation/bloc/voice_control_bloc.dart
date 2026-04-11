@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_chef_ai_assistant/src/core/services/ai_service.dart';
 import 'package:smart_chef_ai_assistant/src/core/services/voice_service.dart';
 import 'package:smart_chef_ai_assistant/src/core/services/tts_service.dart';
+import 'package:smart_chef_ai_assistant/src/core/navigation/app_router.dart';
 import 'package:smart_chef_ai_assistant/src/features/recipes/domain/repositories/recipe_repository_interface.dart';
 import 'package:smart_chef_ai_assistant/src/features/voice_control/domain/models/voice_command.dart';
 
@@ -18,6 +19,7 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
   final AiService _aiService;
   final TtsService _ttsService;
   final RecipeRepositoryInterface _recipeRepository;
+  final AppRouter _appRouter;
   final AudioPlayer _audioPlayer = AudioPlayer();
 
   String _currentTranscription = '';
@@ -30,10 +32,12 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     required AiService aiService,
     required TtsService ttsService,
     required RecipeRepositoryInterface recipeRepository,
+    required AppRouter appRouter,
   }) : _voiceService = voiceService,
        _aiService = aiService,
        _ttsService = ttsService,
        _recipeRepository = recipeRepository,
+       _appRouter = appRouter,
        super(const VoiceControlIdle()) {
     // Регистрация глобальных обработчиков событий STT
     _voiceService.init(
@@ -204,6 +208,7 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
       var command = await _aiService.classifyIntent(
         _currentTranscription,
         recipes: recipesList,
+        currentUrl: _appRouter.currentPath,
       );
 
       if (command.action == VoiceAction.openRecipe) {

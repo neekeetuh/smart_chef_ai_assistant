@@ -128,6 +128,7 @@ class _MyAppState extends State<MyApp> {
                     aiService: widget.aiService,
                     ttsService: widget.ttsService,
                     recipeRepository: context.read<RecipeRepository>(),
+                    appRouter: _appRouter,
                   ),
             ),
           ],

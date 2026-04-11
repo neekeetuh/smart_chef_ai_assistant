@@ -5,6 +5,7 @@ enum VoiceAction {
   openRecipe,
   favorite,
   readStep,
+  readIngredients,
   help,
   unknown;
 
@@ -18,6 +19,11 @@ enum VoiceAction {
       case 'read_step':
       case 'readStep':
         return VoiceAction.readStep;
+      case 'read_ingredients':
+      case 'readIngredients':
+      case 'ингредиенты':
+      case 'ingredients':
+        return VoiceAction.readIngredients;
       case 'theme':
         return VoiceAction.theme;
       case 'open_recipe':

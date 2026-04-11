@@ -17,6 +17,9 @@ class AppTheme {
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.primaryGreen,
         foregroundColor: AppColors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         titleTextStyle: GoogleFonts.lato(
           fontSize: 20,
           fontWeight: FontWeight.w600,
@@ -55,6 +58,9 @@ class AppTheme {
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.darkCard,
         foregroundColor: AppColors.lightGreen,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         titleTextStyle: GoogleFonts.lato(
           fontSize: 20,
           fontWeight: FontWeight.w600,

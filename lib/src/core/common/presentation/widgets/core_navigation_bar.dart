@@ -13,30 +13,37 @@ class CoreNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: currentIndex,
-      onTap: onTap,
-      elevation: 0, // Убираем тень, т.к. она на BottomAppBar
-      type: BottomNavigationBarType.fixed, // Чтобы элементы не смещались
-      backgroundColor:
-          Colors.transparent, // Фон прозрачный, чтобы BottomAppBar его задал
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: AppStrings.homeTitle,
-        ),
+    return Theme(
+      data: Theme.of(context).copyWith(
+        splashFactory: NoSplash.splashFactory,
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+      ),
+      child: BottomNavigationBar(
+        currentIndex: currentIndex,
+        onTap: onTap,
+        elevation: 0, // Убираем тень, т.к. она на BottomAppBar
+        type: BottomNavigationBarType.fixed, // Чтобы элементы не смещались
+        backgroundColor:
+            Colors.transparent, // Фон прозрачный, чтобы BottomAppBar его задал
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: AppStrings.homeTitle,
+          ),
 
-        BottomNavigationBarItem(
-          icon: Icon(Icons.favorite_border),
-          activeIcon: Icon(Icons.favorite),
-          label: AppStrings.favoritesTitle,
-        ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite_border),
+            activeIcon: Icon(Icons.favorite),
+            label: AppStrings.favoritesTitle,
+          ),
 
-        BottomNavigationBarItem(
-          icon: Icon(Icons.settings),
-          label: AppStrings.settingsTitle,
-        ),
-      ],
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: AppStrings.settingsTitle,
+          ),
+        ],
+      ),
     );
   }
 }

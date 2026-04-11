@@ -5,6 +5,7 @@ import 'package:permission_handler/permission_handler.dart';
 class VoiceService {
   final SpeechToText _speechToText = SpeechToText();
   bool _isInitialized = false;
+  bool _isWakeWordDetected = false;
 
   Future<bool> init({
     required void Function(dynamic) onError,
@@ -75,11 +76,15 @@ class VoiceService {
     if (!hasPermission) return;
 
     if (await isReady) {
+      _isWakeWordDetected = false;
       developer.log('STT Wake Word Detection Started...', name: 'VoiceService');
       await _speechToText.listen(
         onResult: (result) async {
+          if (_isWakeWordDetected) return;
+
           final text = result.recognizedWords.toLowerCase();
           if (text.contains('шеф') || text.contains('chef')) {
+            _isWakeWordDetected = true;
             developer.log('STT WAKE WORD DETECTED!', name: 'VoiceService');
             _speechToText.cancel(); // Немедленная остановка вместо ожидания
             onDetected();

@@ -131,7 +131,7 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
 
     _audioPlayer.play(AssetSource('sounds/beep.mp3'));
 
-    await Future.delayed(const Duration(milliseconds: 800));
+    await Future.delayed(const Duration(milliseconds: 400));
 
     developer.log('Starting command listen...', name: 'VoiceControlBloc');
     add(StartListeningEvent());
@@ -141,6 +141,10 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
     StartListeningEvent event,
     Emitter<VoiceControlState> emit,
   ) async {
+    if (state is VoiceControlListening) {
+      developer.log('Already listening, skipping...', name: 'VoiceControlBloc');
+      return;
+    }
     _cancelRestartTimer();
     developer.log('StartListeningEvent', name: 'VoiceControlBloc');
 

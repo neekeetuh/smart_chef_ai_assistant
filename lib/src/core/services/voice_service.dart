@@ -63,10 +63,7 @@ class VoiceService {
         listenFor: const Duration(seconds: 30),
         pauseFor: const Duration(seconds: 10),
         localeId: 'ru_RU',
-        listenOptions: SpeechListenOptions(
-          cancelOnError: true,
-          onDevice: true,
-        ),
+        listenOptions: SpeechListenOptions(cancelOnError: true, onDevice: true),
       );
     } else {
       developer.log('STT is Not Ready', name: 'VoiceService', level: 1000);
@@ -91,6 +88,7 @@ class VoiceService {
         listenFor: const Duration(hours: 1), // Почти бесконечно
         pauseFor: const Duration(hours: 1), // Не прерываемся по тишине
         localeId: 'ru_RU',
+        listenOptions: SpeechListenOptions(onDevice: true),
       );
     }
   }

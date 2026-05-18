@@ -4,7 +4,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:smart_chef_ai_assistant/src/core/services/ai_service.dart';
+import 'package:smart_chef_ai_assistant/src/core/services/classification_service_interface.dart';
 import 'package:smart_chef_ai_assistant/src/core/services/voice_service.dart';
 import 'package:smart_chef_ai_assistant/src/core/services/tts_service.dart';
 import 'package:smart_chef_ai_assistant/src/core/navigation/app_router.dart';
@@ -16,7 +16,7 @@ part 'voice_control_state.dart';
 
 class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
   final VoiceService _voiceService;
-  final AiService _aiService;
+  final ClassificationServiceInterface _aiService;
   final TtsService _ttsService;
   final RecipeRepositoryInterface _recipeRepository;
   final AppRouter _appRouter;
@@ -29,7 +29,7 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
 
   VoiceControlBloc({
     required VoiceService voiceService,
-    required AiService aiService,
+    required ClassificationServiceInterface aiService,
     required TtsService ttsService,
     required RecipeRepositoryInterface recipeRepository,
     required AppRouter appRouter,
@@ -274,7 +274,7 @@ class VoiceControlBloc extends Bloc<VoiceControlEvent, VoiceControlState> {
 
     if (_isWakeWordMode) {
       _cancelRestartTimer();
-      
+
       // Если это таймаут, значит движок уже сам закрылся и готов к работе.
       // Можно перезапускать мгновенно, не дожидаясь 300мс.
       final isTimeout = event.error.contains('error_speech_timeout');

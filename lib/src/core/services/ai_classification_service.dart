@@ -2,13 +2,14 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gigachat_dart/gigachat_dart.dart';
+import 'package:smart_chef_ai_assistant/src/core/services/classification_service_interface.dart';
 import 'package:smart_chef_ai_assistant/src/features/recipes/domain/recipe.dart';
 import 'package:smart_chef_ai_assistant/src/features/voice_control/domain/models/voice_command.dart';
 
-class AiService {
+class AiClassificationService implements ClassificationServiceInterface {
   GigachatClient? _client;
 
-  AiService();
+  AiClassificationService();
 
   Future<void> _ensureInitialized() async {
     if (_client != null) return;
@@ -33,10 +34,15 @@ class AiService {
         scope: 'GIGACHAT_API_PERS',
       );
     } catch (e) {
-      developer.log('GigaChat Initialization Error: $e', name: 'AiService', error: e);
+      developer.log(
+        'GigaChat Initialization Error: $e',
+        name: 'AiService',
+        error: e,
+      );
     }
   }
 
+  @override
   Future<VoiceCommand> classifyIntent(
     String transcription, {
     List<Recipe>? recipes,
@@ -53,7 +59,8 @@ class AiService {
       }
     }
 
-    final systemPrompt = '''
+    final systemPrompt =
+        '''
 Ты голосовой помощник для кулинарного приложения "Voice Chef". Твоя задача - классифицировать намерения пользователя по предоставленному тексту (транскрипции голоса).
 
 Контекст пользователя:
@@ -98,7 +105,10 @@ $recipesContext
 ''';
 
     try {
-      developer.log('GigaChat: Отправка запроса для: "$transcription"', name: 'AiService');
+      developer.log(
+        'GigaChat: Отправка запроса для: "$transcription"',
+        name: 'AiService',
+      );
 
       final response = await _client!.generateChatCompletion(
         request: Chat(
@@ -113,13 +123,19 @@ $recipesContext
 
       final choices = response.choices;
       if (choices == null || choices.isEmpty) {
-        developer.log('GigaChat Warning: Empty choices in response', name: 'AiService');
+        developer.log(
+          'GigaChat Warning: Empty choices in response',
+          name: 'AiService',
+        );
         return VoiceCommand.unknown();
       }
 
       final content = choices.first.message?.content;
       if (content == null) {
-        developer.log('GigaChat Warning: Empty content in first choice', name: 'AiService');
+        developer.log(
+          'GigaChat Warning: Empty content in first choice',
+          name: 'AiService',
+        );
         return VoiceCommand.unknown();
       }
 
@@ -145,7 +161,11 @@ $recipesContext
         final Map<String, dynamic> jsonMap = jsonDecode(jsonText);
         return VoiceCommand.fromJson(jsonMap);
       } catch (e) {
-        developer.log('JSON Parsing Error in AiService: $e. Content was: $jsonText', name: 'AiService', error: e);
+        developer.log(
+          'JSON Parsing Error in AiService: $e. Content was: $jsonText',
+          name: 'AiService',
+          error: e,
+        );
         return VoiceCommand.unknown();
       }
     } catch (e) {

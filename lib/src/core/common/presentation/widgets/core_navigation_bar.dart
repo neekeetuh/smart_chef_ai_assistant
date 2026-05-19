@@ -39,6 +39,11 @@ class CoreNavigationBar extends StatelessWidget {
           ),
 
           BottomNavigationBarItem(
+            icon: Icon(Icons.auto_awesome),
+            label: 'ИИ Шеф',
+          ),
+
+          BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: AppStrings.settingsTitle,
           ),

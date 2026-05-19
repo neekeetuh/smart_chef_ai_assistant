@@ -17,7 +17,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
   @override
   Widget build(BuildContext context) {
     return AutoTabsRouter(
-      routes: const [HomeRoute(), FavoritesRoute(), SettingsRoute()],
+      routes: const [HomeRoute(), FavoritesRoute(), RecipeGeneratorRoute(), SettingsRoute()],
       builder: (context, child) {
         final tabsRouter = AutoTabsRouter.of(context);
 

@@ -27,6 +27,69 @@ class FavoritesRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [GeneratedRecipePreviewPage]
+class GeneratedRecipePreviewRoute
+    extends PageRouteInfo<GeneratedRecipePreviewRouteArgs> {
+  GeneratedRecipePreviewRoute({
+    Key? key,
+    required Recipe recipe,
+    required String prompt,
+    List<PageRouteInfo>? children,
+  }) : super(
+         GeneratedRecipePreviewRoute.name,
+         args: GeneratedRecipePreviewRouteArgs(
+           key: key,
+           recipe: recipe,
+           prompt: prompt,
+         ),
+         initialChildren: children,
+       );
+
+  static const String name = 'GeneratedRecipePreviewRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<GeneratedRecipePreviewRouteArgs>();
+      return GeneratedRecipePreviewPage(
+        key: args.key,
+        recipe: args.recipe,
+        prompt: args.prompt,
+      );
+    },
+  );
+}
+
+class GeneratedRecipePreviewRouteArgs {
+  const GeneratedRecipePreviewRouteArgs({
+    this.key,
+    required this.recipe,
+    required this.prompt,
+  });
+
+  final Key? key;
+
+  final Recipe recipe;
+
+  final String prompt;
+
+  @override
+  String toString() {
+    return 'GeneratedRecipePreviewRouteArgs{key: $key, recipe: $recipe, prompt: $prompt}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! GeneratedRecipePreviewRouteArgs) return false;
+    return key == other.key && recipe == other.recipe && prompt == other.prompt;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ recipe.hashCode ^ prompt.hashCode;
+}
+
+/// generated route for
 /// [HomePage]
 class HomeRoute extends PageRouteInfo<void> {
   const HomeRoute({List<PageRouteInfo>? children})
@@ -154,6 +217,22 @@ class RecipeEditRouteArgs {
 
   @override
   int get hashCode => key.hashCode ^ recipe.hashCode;
+}
+
+/// generated route for
+/// [RecipeGeneratorPage]
+class RecipeGeneratorRoute extends PageRouteInfo<void> {
+  const RecipeGeneratorRoute({List<PageRouteInfo>? children})
+    : super(RecipeGeneratorRoute.name, initialChildren: children);
+
+  static const String name = 'RecipeGeneratorRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const RecipeGeneratorPage();
+    },
+  );
 }
 
 /// generated route for

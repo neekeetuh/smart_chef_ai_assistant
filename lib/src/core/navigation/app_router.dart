@@ -6,6 +6,8 @@ import 'package:smart_chef_ai_assistant/src/features/recipes/presentation/favori
 import 'package:smart_chef_ai_assistant/src/features/recipes/presentation/home_page.dart';
 import 'package:smart_chef_ai_assistant/src/features/recipes/presentation/recipe_detail_page.dart';
 import 'package:smart_chef_ai_assistant/src/features/recipes/presentation/recipe_edit_page.dart';
+import 'package:smart_chef_ai_assistant/src/features/recipe_generator/presentation/pages/recipe_generator_page.dart';
+import 'package:smart_chef_ai_assistant/src/features/recipe_generator/presentation/pages/generated_recipe_preview_page.dart';
 import 'package:smart_chef_ai_assistant/src/features/settings/presentation/settings_page.dart';
 
 import 'package:smart_chef_ai_assistant/src/core/common/presentation/root_shell_page.dart';
@@ -30,12 +32,14 @@ class AppRouter extends RootStackRouter {
           children: [
             AutoRoute(page: HomeRoute.page, path: 'home'),
             AutoRoute(page: FavoritesRoute.page, path: 'favorites'),
+            AutoRoute(page: RecipeGeneratorRoute.page, path: 'generator'),
             AutoRoute(page: SettingsRoute.page, path: 'settings'),
           ],
         ),
         // Экран Деталей теперь соседний в RootShell, открывается "поверх" MainNavigation
         AutoRoute(page: RecipeDetailRoute.page, path: 'recipe/:recipeId'),
         AutoRoute(page: RecipeEditRoute.page, path: 'recipe-edit'),
+        AutoRoute(page: GeneratedRecipePreviewRoute.page, path: 'recipe-preview'),
       ],
     ),
   ];

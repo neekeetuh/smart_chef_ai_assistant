@@ -12,6 +12,7 @@ import 'package:smart_chef_ai_assistant/src/core/services/on_device_classificati
 import 'package:smart_chef_ai_assistant/src/core/services/smart_classification_service.dart';
 import 'package:smart_chef_ai_assistant/src/core/services/voice_service.dart';
 import 'package:smart_chef_ai_assistant/src/core/services/tts_service.dart';
+import 'package:smart_chef_ai_assistant/src/features/recipe_generator/data/services/ai_recipe_generator_service.dart';
 import 'package:smart_chef_ai_assistant/src/core/theme/app_theme.dart';
 import 'package:smart_chef_ai_assistant/src/core/theme/data/theme_data_source.dart';
 import 'package:smart_chef_ai_assistant/src/features/recipes/data/data_sources/drift_recipe_data_source.dart';
@@ -55,9 +56,10 @@ void main() async {
     onDeviceService: onDeviceService,
   );
   final ttsService = TtsService();
-
   // Обеспечиваем пред-инициализацию микрофона
   await voiceService.isReady;
+  
+  final aiRecipeGeneratorService = AiRecipeGeneratorService();
 
   runApp(
     MyApp(
@@ -66,6 +68,7 @@ void main() async {
       ttsService: ttsService,
       recipeRepository: recipeRepository,
       database: database,
+      generatorService: aiRecipeGeneratorService,
     ),
   );
 }
@@ -76,6 +79,7 @@ class MyApp extends StatefulWidget {
   final TtsService ttsService;
   final RecipeRepository recipeRepository;
   final AppDatabase database;
+  final AiRecipeGeneratorService generatorService;
 
   const MyApp({
     super.key,
@@ -84,6 +88,7 @@ class MyApp extends StatefulWidget {
     required this.ttsService,
     required this.recipeRepository,
     required this.database,
+    required this.generatorService,
   });
 
   @override
@@ -123,6 +128,9 @@ class _MyAppState extends State<MyApp> {
           ),
           RepositoryProvider<RecipeRepository>(
             create: (_) => widget.recipeRepository,
+          ),
+          RepositoryProvider<AiRecipeGeneratorService>.value(
+            value: widget.generatorService,
           ),
           RepositoryProvider<TtsService>.value(value: widget.ttsService),
         ],

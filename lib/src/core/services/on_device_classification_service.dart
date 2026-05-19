@@ -29,6 +29,14 @@ class OnDeviceClassificationService implements ClassificationServiceInterface {
       return VoiceCommand.unknown();
     }
 
+    // On-device классификатор не поддерживает генерацию рецептов через LLM
+    if (normalizedTrans.contains('сгенерируй') ||
+        normalizedTrans.contains('создай рецепт') ||
+        normalizedTrans.contains('придумай') ||
+        normalizedTrans.contains('генерация')) {
+      return VoiceCommand.unsupported(reason: .generateRecipe);
+    }
+
     developer.log(
       'NLU Classifier: Обработка запроса: "$transcription"',
       name: 'AiService',

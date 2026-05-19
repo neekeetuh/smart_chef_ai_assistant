@@ -53,6 +53,12 @@ class VoiceHelpBottomSheet extends StatelessWidget {
             examples: const ['"открой рецепт борща"', '"покажи салат цезарь"'],
           ),
           _CommandItem(
+            icon: Icons.psychology,
+            title: 'ИИ Генерация (нужен интернет)',
+            subtitle: 'Генерация новых рецептов по вашим пожеланиям',
+            examples: const ['"сгенерируй рецепт мясного блюда с гарниром"', '"создай рецепт веганского пирога"'],
+          ),
+          _CommandItem(
             icon: Icons.palette,
             title: 'Интерфейс',
             subtitle: 'Смена темы оформления',

@@ -30,10 +30,11 @@ class OnDeviceClassificationService implements ClassificationServiceInterface {
     }
 
     // On-device классификатор не поддерживает генерацию рецептов через LLM
-    if (normalizedTrans.contains('сгенерируй') ||
-        normalizedTrans.contains('создай рецепт') ||
+    if (normalizedTrans.contains('генерируй') ||
+        normalizedTrans.contains('создай') ||
         normalizedTrans.contains('придумай') ||
-        normalizedTrans.contains('генерация')) {
+        normalizedTrans.contains('генерация') ||
+        normalizedTrans.contains('сделай рецепт')) {
       return VoiceCommand.unsupported(reason: .generateRecipe);
     }
 

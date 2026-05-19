@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_chef_ai_assistant/src/core/constants/app_strings.dart';
+import 'package:smart_chef_ai_assistant/src/core/navigation/app_router.dart';
 import 'package:smart_chef_ai_assistant/src/features/recipes/domain/recipe.dart';
 import 'package:smart_chef_ai_assistant/src/features/recipes/presentation/bloc/recipe_bloc.dart';
 import 'package:smart_chef_ai_assistant/src/features/recipes/presentation/widgets/recipe_step_view.dart';
@@ -75,15 +77,37 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                 ),
               ),
               flexibleSpace: FlexibleSpaceBar(
-                background: Image.network(
-                  recipe.imageUrl,
-                  fit: BoxFit.cover,
-                  color: Colors.black.withAlpha(75),
-                  colorBlendMode: BlendMode.darken,
-                ),
+                background: recipe.imageUrl.startsWith('http')
+                    ? Image.network(
+                        recipe.imageUrl,
+                        fit: BoxFit.cover,
+                        color: Colors.black.withAlpha(75),
+                        colorBlendMode: BlendMode.darken,
+                      )
+                    : (recipe.imageUrl.isNotEmpty
+                          ? Image.file(
+                              File(recipe.imageUrl),
+                              fit: BoxFit.cover,
+                              color: Colors.black.withAlpha(75),
+                              colorBlendMode: BlendMode.darken,
+                            )
+                          : Container(color: Colors.grey)),
               ),
               actions: [
                 const GlobalVoiceAppBarAction(),
+                IconButton(
+                  icon: const Icon(Icons.edit, color: Colors.white),
+                  onPressed: () {
+                    context.router.push(RecipeEditRoute(recipe: recipe));
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.white),
+                  onPressed: () {
+                    bloc.add(DeleteRecipeEvent(widget.recipeId));
+                    context.router.pop();
+                  },
+                ),
                 IconButton(
                   icon: Icon(
                     recipe.isFavorite ? Icons.favorite : Icons.favorite_border,

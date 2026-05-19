@@ -18,3 +18,19 @@ class ToggleFavoriteEvent extends RecipeEvent {
   @override
   List<Object> get props => [recipeId];
 }
+
+class SaveRecipeEvent extends RecipeEvent {
+  final Recipe recipe;
+  const SaveRecipeEvent(this.recipe);
+
+  @override
+  List<Object> get props => [recipe];
+}
+
+class DeleteRecipeEvent extends RecipeEvent {
+  final String recipeId;
+  const DeleteRecipeEvent(this.recipeId);
+
+  @override
+  List<Object> get props => [recipeId];
+}

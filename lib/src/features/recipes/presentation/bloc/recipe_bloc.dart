@@ -16,6 +16,8 @@ class RecipeBloc extends Bloc<RecipeEvent, RecipeState> {
     // Регистрация обработчиков событий
     on<FetchRecipesEvent>(_onFetchRecipes);
     on<ToggleFavoriteEvent>(_onToggleFavorite);
+    on<SaveRecipeEvent>(_onSaveRecipe);
+    on<DeleteRecipeEvent>(_onDeleteRecipe);
   }
 
   Future<void> _onFetchRecipes(
@@ -35,22 +37,33 @@ class RecipeBloc extends Bloc<RecipeEvent, RecipeState> {
     }
   }
 
-  // === Метод, заменяющий toggleFavorite() ===
   Future<void> _onToggleFavorite(
     ToggleFavoriteEvent event,
     Emitter<RecipeState> emit,
   ) async {
-    // 1. Изменяем статус в репозитории (внутреннем кэше)
     await _repository.toggleFavoriteStatus(event.recipeId);
-
-    // 2. Получаем обновленный список из репозитория
     final updatedRecipes = await _repository.getRecipes();
-
-    // 3. Обновляем состояние BLoC
     emit(RecipeSuccessfulState(recipes: updatedRecipes));
   }
 
-  // === Метод, заменяющий getRecipeById() (должен работать с реализованным репозиторием) ===
+  Future<void> _onSaveRecipe(
+    SaveRecipeEvent event,
+    Emitter<RecipeState> emit,
+  ) async {
+    await _repository.saveRecipe(event.recipe);
+    final updatedRecipes = await _repository.getRecipes();
+    emit(RecipeSuccessfulState(recipes: updatedRecipes));
+  }
+
+  Future<void> _onDeleteRecipe(
+    DeleteRecipeEvent event,
+    Emitter<RecipeState> emit,
+  ) async {
+    await _repository.deleteRecipe(event.recipeId);
+    final updatedRecipes = await _repository.getRecipes();
+    emit(RecipeSuccessfulState(recipes: updatedRecipes));
+  }
+
   Recipe? getRecipeById(String id) {
     return _repository.getRecipeById(id);
   }

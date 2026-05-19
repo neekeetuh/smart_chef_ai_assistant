@@ -1,4 +1,5 @@
 // lib/features/1_recipe/presentation/widgets/recipe_card.dart
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:smart_chef_ai_assistant/src/features/recipes/domain/recipe.dart';
 
@@ -26,15 +27,24 @@ class RecipeCard extends StatelessWidget {
             SizedBox(
               height: 180,
               width: double.infinity,
-              child: Image.network(
-                recipe.imageUrl,
-                fit: BoxFit.cover,
-                // Заглушка на случай ошибки загрузки
-                errorBuilder: (context, error, stackTrace) => Container(
-                  color: Colors.grey[300],
-                  child: const Icon(Icons.restaurant_menu, color: Colors.grey),
-                ),
-              ),
+              child: recipe.imageUrl.startsWith('http')
+                  ? Image.network(
+                      recipe.imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: Colors.grey[300],
+                        child: const Icon(Icons.restaurant_menu, color: Colors.grey),
+                      ),
+                    )
+                  : (recipe.imageUrl.isNotEmpty
+                      ? Image.file(
+                          File(recipe.imageUrl),
+                          fit: BoxFit.cover,
+                        )
+                      : Container(
+                          color: Colors.grey[300],
+                          child: const Icon(Icons.restaurant_menu, color: Colors.grey),
+                        )),
             ),
 
             // Текст и кнопка

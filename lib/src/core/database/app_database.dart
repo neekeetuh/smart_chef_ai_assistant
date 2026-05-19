@@ -16,12 +16,44 @@ class FavoriteRecipes extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [FavoriteRecipes])
+@DataClassName('CustomRecipeEntry')
+class CustomRecipes extends Table {
+  TextColumn get id => text()();
+  TextColumn get recipeData => text()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DataClassName('HiddenRecipeEntry')
+class HiddenRecipes extends Table {
+  TextColumn get id => text()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DriftDatabase(tables: [FavoriteRecipes, CustomRecipes, HiddenRecipes])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2; // Incremented schema version
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (Migrator m) async {
+        await m.createAll();
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from == 1) {
+          await m.createTable(customRecipes);
+          await m.createTable(hiddenRecipes);
+        }
+      },
+    );
+  }
 }
 
 LazyDatabase _openConnection() {

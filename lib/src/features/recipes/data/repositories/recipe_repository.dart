@@ -17,19 +17,35 @@ class RecipeRepository implements RecipeRepositoryInterface {
 
   @override
   Future<List<Recipe>> getRecipes() async {
-    if (_recipes.isEmpty) {
-      final mockRecipes = await _mockDataSource.getAllRecipes();
-      final favorites = await _driftDataSource.getFavoriteRecipes();
+    final mockRecipes = await _mockDataSource.getAllRecipes();
+    final customRecipes = await _driftDataSource.getCustomRecipes();
+    final hiddenRecipeIds = await _driftDataSource.getHiddenRecipeIds();
+    final favorites = await _driftDataSource.getFavoriteRecipes();
 
-      final favoriteIds = favorites.map((e) => e.id).toSet();
+    final favoriteIds = favorites.map((e) => e.id).toSet();
+    final customRecipeIds = customRecipes.map((c) => c.id).toSet();
+    final hiddenIds = hiddenRecipeIds.toSet();
 
-      _recipes = mockRecipes.map((r) {
-        if (favoriteIds.contains(r.id)) {
-          return r.copyWith(isFavorite: true);
-        }
-        return r;
-      }).toList();
-    }
+    final visibleMockRecipes = mockRecipes.where((r) => 
+        !hiddenIds.contains(r.id) && !customRecipeIds.contains(r.id)
+    ).toList();
+    
+    final allRecipes = [...customRecipes, ...visibleMockRecipes];
+
+    // Сортируем по дате изменения: сначала новые (dateB.compareTo(dateA))
+    allRecipes.sort((a, b) {
+      final dateA = a.updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final dateB = b.updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      return dateB.compareTo(dateA);
+    });
+
+    _recipes = allRecipes.map((r) {
+      if (favoriteIds.contains(r.id)) {
+        return r.copyWith(isFavorite: true);
+      }
+      return r.copyWith(isFavorite: false);
+    }).toList();
+
     return _recipes;
   }
 
@@ -49,6 +65,27 @@ class RecipeRepository implements RecipeRepositoryInterface {
         await _driftDataSource.removeFavorite(toggledRecipe.id);
       }
     }
+  }
+
+  @override
+  Future<void> saveRecipe(Recipe recipe) async {
+    await _driftDataSource.saveCustomRecipe(recipe);
+    // Reload recipes
+    await getRecipes();
+  }
+
+  @override
+  Future<void> deleteRecipe(String recipeId) async {
+    final isCustom = (await _driftDataSource.getCustomRecipes()).any((r) => r.id == recipeId);
+    if (isCustom) {
+      await _driftDataSource.deleteCustomRecipe(recipeId);
+    }
+    // Always hide the recipe ID to prevent a base mock recipe from reappearing
+    // if the deleted custom recipe was originally an edited base recipe.
+    await _driftDataSource.hideRecipe(recipeId);
+    
+    // Reload recipes
+    await getRecipes();
   }
 
   Recipe? getRecipeById(String id) {

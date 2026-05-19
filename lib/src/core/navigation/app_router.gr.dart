@@ -111,6 +111,52 @@ class RecipeDetailRouteArgs {
 }
 
 /// generated route for
+/// [RecipeEditPage]
+class RecipeEditRoute extends PageRouteInfo<RecipeEditRouteArgs> {
+  RecipeEditRoute({Key? key, Recipe? recipe, List<PageRouteInfo>? children})
+    : super(
+        RecipeEditRoute.name,
+        args: RecipeEditRouteArgs(key: key, recipe: recipe),
+        initialChildren: children,
+      );
+
+  static const String name = 'RecipeEditRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<RecipeEditRouteArgs>(
+        orElse: () => const RecipeEditRouteArgs(),
+      );
+      return RecipeEditPage(key: args.key, recipe: args.recipe);
+    },
+  );
+}
+
+class RecipeEditRouteArgs {
+  const RecipeEditRouteArgs({this.key, this.recipe});
+
+  final Key? key;
+
+  final Recipe? recipe;
+
+  @override
+  String toString() {
+    return 'RecipeEditRouteArgs{key: $key, recipe: $recipe}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! RecipeEditRouteArgs) return false;
+    return key == other.key && recipe == other.recipe;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ recipe.hashCode;
+}
+
+/// generated route for
 /// [RootShellPage]
 class RootShellRoute extends PageRouteInfo<void> {
   const RootShellRoute({List<PageRouteInfo>? children})

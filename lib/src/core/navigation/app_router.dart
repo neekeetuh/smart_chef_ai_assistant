@@ -1,9 +1,11 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_chef_ai_assistant/src/core/common/presentation/main_navigation_page.dart';
+import 'package:smart_chef_ai_assistant/src/features/recipes/domain/recipe.dart';
 import 'package:smart_chef_ai_assistant/src/features/recipes/presentation/favorites_page.dart';
 import 'package:smart_chef_ai_assistant/src/features/recipes/presentation/home_page.dart';
 import 'package:smart_chef_ai_assistant/src/features/recipes/presentation/recipe_detail_page.dart';
+import 'package:smart_chef_ai_assistant/src/features/recipes/presentation/recipe_edit_page.dart';
 import 'package:smart_chef_ai_assistant/src/features/settings/presentation/settings_page.dart';
 
 import 'package:smart_chef_ai_assistant/src/core/common/presentation/root_shell_page.dart';
@@ -33,6 +35,7 @@ class AppRouter extends RootStackRouter {
         ),
         // Экран Деталей теперь соседний в RootShell, открывается "поверх" MainNavigation
         AutoRoute(page: RecipeDetailRoute.page, path: 'recipe/:recipeId'),
+        AutoRoute(page: RecipeEditRoute.page, path: 'recipe-edit'),
       ],
     ),
   ];

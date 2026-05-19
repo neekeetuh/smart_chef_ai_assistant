@@ -1,6 +1,6 @@
-// lib/features/1_recipe/presentation/widgets/recipe_card.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:smart_chef_ai_assistant/src/features/recipes/domain/recipe.dart';
 
 class RecipeCard extends StatelessWidget {
@@ -28,10 +28,14 @@ class RecipeCard extends StatelessWidget {
               height: 180,
               width: double.infinity,
               child: recipe.imageUrl.startsWith('http')
-                  ? Image.network(
-                      recipe.imageUrl,
+                  ? CachedNetworkImage(
+                      imageUrl: recipe.imageUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
+                      placeholder: (context, url) => Container(
+                        color: Colors.grey[200],
+                        child: const Center(child: CircularProgressIndicator()),
+                      ),
+                      errorWidget: (context, url, error) => Container(
                         color: Colors.grey[300],
                         child: const Icon(Icons.restaurant_menu, color: Colors.grey),
                       ),

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:smart_chef_ai_assistant/src/features/recipes/domain/recipe.dart';
@@ -109,11 +110,19 @@ class _RecipeEditPageState extends State<RecipeEditPage> {
     }
 
     if (_imagePath!.startsWith('http')) {
-      return Image.network(
-        _imagePath!,
+      return CachedNetworkImage(
+        imageUrl: _imagePath!,
         height: 200,
         width: double.infinity,
         fit: BoxFit.cover,
+        placeholder: (context, url) => Container(
+          color: Colors.grey[200],
+          child: const Center(child: CircularProgressIndicator()),
+        ),
+        errorWidget: (context, url, error) => Container(
+          color: Colors.grey[300],
+          child: const Icon(Icons.restaurant_menu, color: Colors.grey),
+        ),
       );
     }
 

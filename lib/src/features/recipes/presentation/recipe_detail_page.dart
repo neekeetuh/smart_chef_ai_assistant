@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_chef_ai_assistant/src/core/constants/app_strings.dart';
 import 'package:smart_chef_ai_assistant/src/core/navigation/app_router.dart';
@@ -78,11 +79,19 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
               ),
               flexibleSpace: FlexibleSpaceBar(
                 background: recipe.imageUrl.startsWith('http')
-                    ? Image.network(
-                        recipe.imageUrl,
+                    ? CachedNetworkImage(
+                        imageUrl: recipe.imageUrl,
                         fit: BoxFit.cover,
                         color: Colors.black.withAlpha(75),
                         colorBlendMode: BlendMode.darken,
+                        placeholder: (context, url) => Container(
+                          color: Colors.black.withAlpha(75),
+                          child: const Center(child: CircularProgressIndicator()),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: Colors.grey[300],
+                          child: const Icon(Icons.restaurant_menu, color: Colors.grey),
+                        ),
                       )
                     : (recipe.imageUrl.isNotEmpty
                           ? Image.file(

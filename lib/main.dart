@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:smart_chef_ai_assistant/src/core/database/app_database.dart';
 import 'package:smart_chef_ai_assistant/src/core/navigation/app_router.dart';
+import 'package:smart_chef_ai_assistant/src/core/providers/view_mode_provider.dart';
 import 'package:smart_chef_ai_assistant/src/core/providers/theme_provider.dart';
 import 'package:smart_chef_ai_assistant/src/core/services/ai_classification_service.dart';
 import 'package:smart_chef_ai_assistant/src/core/services/on_device_classification_service.dart';
@@ -106,6 +107,9 @@ class _MyAppState extends State<MyApp> {
       providers: [
         ChangeNotifierProvider(
           create: (_) => ThemeProvider(themeDataSource: themeDataSource),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ViewModeProvider(),
         ),
         ChangeNotifierProvider<SmartClassificationService>.value(
           value: widget.aiService,
